@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getUsageToday } from "@/lib/ai-chef.functions";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { logout as doLogout } from "@/lib/auth";
 import { Crown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -15,10 +15,7 @@ function SettingsPage() {
   const fetchUsage = useServerFn(getUsageToday);
   const { data } = useQuery({ queryKey: ["usage"], queryFn: () => fetchUsage() });
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
-  };
+  const logout = () => doLogout(navigate);
 
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-10">

@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { ChefHat } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) throw redirect({ to: "/dashboard" });
+  },
   component: LoginPage,
 });
 
@@ -16,12 +20,6 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
-    });
-  }, [navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
