@@ -41,7 +41,10 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      const msg = /rate limit|too many|email rate/i.test(error.message)
+        ? "Trop de requêtes, veuillez patienter un instant."
+        : error.message;
+      toast.error(msg);
       return;
     }
     toast.success("Compte créé !");
