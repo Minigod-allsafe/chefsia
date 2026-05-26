@@ -29,7 +29,10 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      const msg = /rate limit|too many/i.test(error.message)
+        ? "Trop de tentatives, veuillez patienter un instant."
+        : error.message;
+      toast.error(msg);
       return;
     }
     toast.success("Bienvenue !");
