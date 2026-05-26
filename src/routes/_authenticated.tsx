@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logout as doLogout } from "@/lib/auth";
 import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,10 +29,7 @@ function AuthLayout() {
 
   useEffect(() => setOpen(false), [path]);
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/" });
-  };
+  const logout = () => doLogout(navigate);
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
