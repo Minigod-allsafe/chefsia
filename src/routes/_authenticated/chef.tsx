@@ -131,26 +131,45 @@ function ChefPage() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        className="border-t bg-background p-4"
-      >
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Demandez une recette, un conseil…"
-            disabled={loading}
-            className="h-12"
-          />
-          <Button type="submit" disabled={loading || !input.trim()} size="lg">
-            <Send className="h-4 w-4" />
-          </Button>
+      {limitReached ? (
+        <div className="border-t bg-gradient-to-r from-primary/10 via-background to-primary/10 p-6">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 text-center">
+            <div className="flex items-center gap-2 text-primary">
+              <Lock className="h-5 w-5" />
+              <span className="font-semibold">Limite quotidienne atteinte ({limit}/{limit})</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Passez à Premium pour un accès illimité au Chef IA, à tous les cours et plus encore.
+            </p>
+            <Button asChild size="lg" className="shadow-glow">
+              <Link to="/premium">
+                <Crown className="mr-2 h-4 w-4" /> Passer Premium · 10$/mois
+              </Link>
+            </Button>
+          </div>
         </div>
-      </form>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          className="border-t bg-background p-4"
+        >
+          <div className="mx-auto flex max-w-3xl gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Demandez une recette, un conseil…"
+              disabled={loading}
+              className="h-12"
+            />
+            <Button type="submit" disabled={loading || !input.trim()} size="lg">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
