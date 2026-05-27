@@ -126,6 +126,9 @@ export const askChef = createServerFn({ method: "POST" })
       } catch {
         // Image generation is best-effort; ignore failure.
       }
+
+      // Append a video demonstration marker (YouTube search embed).
+      reply = `${reply}\n\n[[VIDEO:${dishName}]]`;
     }
 
     // Save chat history
