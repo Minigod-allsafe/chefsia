@@ -128,6 +128,9 @@ export const askChef = createServerFn({ method: "POST" })
       }
     }
 
+    // Save chat history
+    const userMsg = data.messages[data.messages.length - 1];
+    await supabase.from("ai_chats").insert([
       { user_id: userId, role: "user", content: userMsg.content },
       { user_id: userId, role: "assistant", content: reply },
     ]);
