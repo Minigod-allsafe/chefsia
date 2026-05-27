@@ -50,6 +50,9 @@ function LoginPage() {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Connexion..." : "Se connecter"}
       </Button>
+      <p className="text-center text-sm">
+        <Link to="/forgot-password" className="text-primary hover:underline">Mot de passe oublié ?</Link>
+      </p>
       <p className="text-center text-sm text-muted-foreground">
         Pas encore de compte ? <Link to="/signup" className="text-primary hover:underline">Créer un compte</Link>
       </p>
