@@ -29,7 +29,7 @@ function SignupPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -45,8 +45,13 @@ function SignupPage() {
       toast.error(msg);
       return;
     }
-    toast.success("Compte créé !");
-    navigate({ to: "/dashboard" });
+    if (data.session) {
+      toast.success("Compte créé !");
+      navigate({ to: "/dashboard" });
+    } else {
+      toast.success("Vérifiez votre boîte mail pour confirmer votre compte ✉️");
+      navigate({ to: "/login" });
+    }
   };
 
   return (
