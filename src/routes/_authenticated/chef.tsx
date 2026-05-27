@@ -67,6 +67,7 @@ function ChefPage() {
   const used = usageQ.data?.used ?? 0;
   const limit = usageQ.data?.limit ?? 3;
   const isPremium = usageQ.data?.isPremium ?? false;
+  const limitReached = !isPremium && used >= limit;
 
   return (
     <div className="flex h-[100dvh] flex-col md:h-screen">
