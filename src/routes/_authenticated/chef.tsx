@@ -107,9 +107,7 @@ function ChefPage() {
                 }
               >
                 {m.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-primary prose-li:my-1">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
-                  </div>
+                  <AssistantMessage content={m.content} />
                 ) : (
                   <p className="text-sm">{m.content}</p>
                 )}
