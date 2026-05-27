@@ -91,11 +91,43 @@ export const askChef = createServerFn({ method: "POST" })
     }
 
     const json = await res.json();
-    const reply: string = json.choices?.[0]?.message?.content ?? "";
+    let reply: string = json.choices?.[0]?.message?.content ?? "";
 
-    // Save chat history
-    const userMsg = data.messages[data.messages.length - 1];
-    await supabase.from("ai_chats").insert([
+    // If the reply contains a recipe (has the structured heading), generate an image.
+    const dishMatch = reply.match(/##\s*🍽️\s*(.+)/);
+    if (dishMatch) {
+      const dishName = dishMatch[1].trim();
+      try {
+        const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [
+              {
+                role: "user",
+                content: `Photographie culinaire professionnelle de "${dishName}". Plat fini, dressé avec soin sur une belle assiette, lumière naturelle douce, vue de dessus 3/4, style magazine gastronomique, très appétissant, haute résolution.`,
+              },
+            ],
+            modalities: ["image", "text"],
+          }),
+        });
+        if (imgRes.ok) {
+          const imgJson = await imgRes.json();
+          const url: string | undefined =
+            imgJson.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (url) {
+            reply = `![${dishName}](${url})\n\n${reply}`;
+          }
+        }
+      } catch {
+        // Image generation is best-effort; ignore failure.
+      }
+    }
+
       { user_id: userId, role: "user", content: userMsg.content },
       { user_id: userId, role: "assistant", content: reply },
     ]);
