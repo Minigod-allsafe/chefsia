@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { askChef, getUsageToday } from "@/lib/ai-chef.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Send, ChefHat, Crown, Lock, Play } from "lucide-react";
+import { Sparkles, Send, ChefHat, Crown, Lock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -173,32 +173,9 @@ function ChefPage() {
 }
 
 function AssistantMessage({ content }: { content: string }) {
-  // Split content around the [[VIDEO:Dish Name]] marker to embed a YouTube demo.
-  const parts = content.split(/\[\[VIDEO:([^\]]+)\]\]/g);
   return (
     <div className="prose prose-sm prose-invert max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-primary prose-li:my-1 prose-img:rounded-xl">
-      {parts.map((part, i) => {
-        // Even indices = markdown, odd indices = dish name captured from the marker.
-        if (i % 2 === 0) return <ReactMarkdown key={i}>{part}</ReactMarkdown>;
-        const query = encodeURIComponent(`recette ${part} étapes`);
-        return (
-          <div key={i} className="not-prose my-4 overflow-hidden rounded-xl border bg-black/40">
-            <div className="flex items-center gap-2 border-b bg-card/50 px-4 py-2 text-sm font-medium text-foreground">
-              <Play className="h-4 w-4 text-primary" /> Vidéo des étapes — {part}
-            </div>
-            <div className="relative aspect-video w-full">
-              <iframe
-                src={`https://www.youtube.com/embed?listType=search&list=${query}`}
-                title={`Vidéo recette ${part}`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        );
-      })}
+      <ReactMarkdown>{content}</ReactMarkdown>
     </div>
   );
 }

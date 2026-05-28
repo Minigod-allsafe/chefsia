@@ -126,9 +126,6 @@ export const askChef = createServerFn({ method: "POST" })
       } catch {
         // Image generation is best-effort; ignore failure.
       }
-
-      // Append a video demonstration marker (YouTube search embed).
-      reply = `${reply}\n\n[[VIDEO:${dishName}]]`;
     }
 
     // Save chat history
@@ -166,7 +163,11 @@ export const getUsageToday = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const today = new Date().toISOString().slice(0, 10);
     const [{ data: profile }, { data: usage }] = await Promise.all([
-      supabase.from("profiles").select("is_premium, full_name, email").eq("id", userId).single(),
+      supabase
+        .from("profiles")
+        .select("is_premium, full_name, email, phone")
+        .eq("id", userId)
+        .maybeSingle(),
       supabase
         .from("ai_usage")
         .select("count")
@@ -180,7 +181,34 @@ export const getUsageToday = createServerFn({ method: "GET" })
       isPremium: profile?.is_premium ?? false,
       fullName: profile?.full_name ?? null,
       email: profile?.email ?? null,
+      phone: profile?.phone ?? null,
     };
+  });
+
+export const updateProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        full_name: z.string().trim().min(1).max(120).optional(),
+        phone: z
+          .string()
+          .trim()
+          .max(30)
+          .regex(/^[+0-9 ().-]*$/, "Numéro invalide")
+          .optional()
+          .or(z.literal("")),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const patch: Record<string, string | null> = {};
+    if (data.full_name !== undefined) patch.full_name = data.full_name;
+    if (data.phone !== undefined) patch.phone = data.phone === "" ? null : data.phone;
+    const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const upgradeToPremium = createServerFn({ method: "POST" })
