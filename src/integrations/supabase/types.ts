@@ -128,6 +128,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_premium: boolean
+          phone: string | null
         }
         Insert: {
           created_at?: string
@@ -135,6 +136,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_premium?: boolean
+          phone?: string | null
         }
         Update: {
           created_at?: string
@@ -142,6 +144,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_premium?: boolean
+          phone?: string | null
         }
         Relationships: []
       }
