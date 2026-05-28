@@ -67,7 +67,7 @@ function SignupPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Mot de passe</Label>
-          <Input id="password" type="password" required placeholder="ex: christ123" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full shadow-glow" disabled={loading}>
           {loading ? "Création..." : "Créer mon compte"}
