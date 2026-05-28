@@ -32,8 +32,8 @@ function ResetPasswordPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Le mot de passe doit faire au moins 6 caractères");
+    if (password.length < 5) {
+      toast.error("Le mot de passe doit faire au moins 5 caractères");
       return;
     }
     if (password !== confirm) {
@@ -61,11 +61,11 @@ function ResetPasswordPage() {
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="password">Nouveau mot de passe</Label>
-            <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id="password" type="password" required placeholder="ex: christ123" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirmer</Label>
-            <Input id="confirm" type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <Input id="confirm" type="password" required placeholder="ex: christ123" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Mise à jour..." : "Mettre à jour"}
