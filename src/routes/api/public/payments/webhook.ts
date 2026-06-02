@@ -118,6 +118,19 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           }
         }
         console.error("Webhook error (all envs failed):", lastError);
+        // Log invalid webhook attempts for security monitoring (brute-force / tampering)
+        try {
+          const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+          const ua = request.headers.get("user-agent") ?? null;
+          await getSupabase().from("audit_logs").insert({
+            user_id: null,
+            action: "webhook_signature_invalid",
+            resource: "stripe",
+            ip_address: ip,
+            user_agent: ua,
+            metadata: { error: String(lastError).slice(0, 500), hint } as any,
+          });
+        } catch { /* never block webhook response on audit failure */ }
         return new Response("Webhook signature verification failed", { status: 400 });
       },
     },
