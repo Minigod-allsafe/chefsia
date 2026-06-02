@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChefHat } from "lucide-react";
+import { logAuditPublic } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
