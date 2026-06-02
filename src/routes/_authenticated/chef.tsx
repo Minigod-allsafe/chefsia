@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { RecipeVideoPlayer } from "@/components/RecipeVideoPlayer";
 
 const search = z.object({ q: z.string().optional() });
 
@@ -17,7 +18,13 @@ export const Route = createFileRoute("/_authenticated/chef")({
   component: ChefPage,
 });
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  chatId?: string | null;
+  isRecipe?: boolean;
+};
+
 
 function ChefPage() {
   const { q } = Route.useSearch();
@@ -44,8 +51,18 @@ function ChefPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetchAsk({ data: { messages: next } });
-      setMessages([...next, { role: "assistant", content: res.reply }]);
+      const res = await fetchAsk({
+        data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
+      });
+      setMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: res.reply,
+          chatId: res.assistantChatId ?? null,
+          isRecipe: Boolean(res.isRecipe),
+        },
+      ]);
       qc.invalidateQueries({ queryKey: ["usage"] });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur";
@@ -55,6 +72,7 @@ function ChefPage() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (q && !sentInitial.current) {
@@ -107,10 +125,16 @@ function ChefPage() {
                 }
               >
                 {m.role === "assistant" ? (
-                  <AssistantMessage content={m.content} />
+                  <>
+                    <AssistantMessage content={m.content} />
+                    {m.isRecipe && m.chatId ? (
+                      <RecipeVideoPlayer chatId={m.chatId} />
+                    ) : null}
+                  </>
                 ) : (
                   <p className="text-sm">{m.content}</p>
                 )}
+
               </div>
             </div>
           ))}

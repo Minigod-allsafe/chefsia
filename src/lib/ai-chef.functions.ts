@@ -181,10 +181,17 @@ export const askChef = createServerFn({ method: "POST" })
 
     // Save chat history
     const userMsg = data.messages[data.messages.length - 1];
-    await supabase.from("ai_chats").insert([
-      { user_id: userId, role: "user", content: userMsg.content },
-      { user_id: userId, role: "assistant", content: reply },
-    ]);
+    const { data: inserted } = await supabase
+      .from("ai_chats")
+      .insert([
+        { user_id: userId, role: "user", content: userMsg.content },
+        { user_id: userId, role: "assistant", content: reply },
+      ])
+      .select("id, role, created_at")
+      .order("created_at", { ascending: true });
+
+    const assistantChatId =
+      inserted?.find((r) => r.role === "assistant")?.id ?? null;
 
     // Increment usage
     if (!isPremium) {
@@ -213,8 +220,10 @@ export const askChef = createServerFn({ method: "POST" })
       });
     }
 
-    return { reply, isPremium };
+    const isRecipe = Boolean(dishMatch);
+    return { reply, isPremium, assistantChatId, isRecipe };
   });
+
 
 export const getUsageToday = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
