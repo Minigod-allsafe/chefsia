@@ -45,6 +45,7 @@ function Landing() {
               "linear-gradient(180deg, oklch(0.14 0.01 60 / 0.6) 0%, oklch(0.14 0.01 60 / 0.95) 100%)",
           }}
         />
+        <IngredientsBackground count={28} className="-z-10" />
         <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 text-center">
           <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
             <Sparkles className="h-3.5 w-3.5" /> Propulsé par l'IA culinaire
