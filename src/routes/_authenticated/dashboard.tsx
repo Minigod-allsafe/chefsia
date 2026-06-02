@@ -73,7 +73,7 @@ function DashboardHome() {
           </div>
           <p className="mt-3 text-3xl font-bold">{isPremium ? "Premium" : "Free"}</p>
           {!isPremium && (
-            <Link to="/premium">
+            <Link to="/billing">
               <Button size="sm" className="mt-2 w-full">Passer Premium</Button>
             </Link>
           )}
@@ -109,7 +109,7 @@ function DashboardHome() {
                 Chef IA illimité · Tous les cours premium · 10$/mois
               </p>
             </div>
-            <Link to="/premium">
+            <Link to="/billing">
               <Button size="lg" className="shadow-glow">Passer Premium</Button>
             </Link>
           </div>
