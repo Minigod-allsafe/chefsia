@@ -275,6 +275,28 @@ export const generateRecipeVideo = createServerFn({ method: "POST" })
         .eq("chat_id", data.chatId);
       if (updErr) throw new Error(updErr.message);
 
+      // --- Déduction des crédits après succès uniquement ---
+      if (!isPremium) {
+        const newCount = usedToday + VIDEO_CREDIT_COST;
+        const { data: existingUsage } = await supabase
+          .from("ai_usage")
+          .select("count")
+          .eq("user_id", userId)
+          .eq("day", today)
+          .maybeSingle();
+        if (existingUsage) {
+          await supabase
+            .from("ai_usage")
+            .update({ count: newCount })
+            .eq("user_id", userId)
+            .eq("day", today);
+        } else {
+          await supabase
+            .from("ai_usage")
+            .insert({ user_id: userId, day: today, count: VIDEO_CREDIT_COST });
+        }
+      }
+
       return { status: "ready" as const, dish: storyboard.dish };
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur inconnue";
