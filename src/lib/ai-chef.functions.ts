@@ -194,15 +194,23 @@ export const askChef = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("day", today)
         .maybeSingle();
+      const newCount = (existing?.count ?? 0) + 1;
       if (existing) {
         await supabase
           .from("ai_usage")
-          .update({ count: existing.count + 1 })
+          .update({ count: newCount })
           .eq("user_id", userId)
           .eq("day", today);
       } else {
         await supabase.from("ai_usage").insert({ user_id: userId, day: today, count: 1 });
       }
+      await audit({
+        user_id: userId,
+        email,
+        action: "chef_credit_consumed",
+        resource: "ai-chef",
+        metadata: { used: newCount, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - newCount) },
+      });
     }
 
     return { reply, isPremium };
