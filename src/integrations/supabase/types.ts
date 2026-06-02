@@ -298,6 +298,53 @@ export type Database = {
           },
         ]
       }
+      recipe_videos: {
+        Row: {
+          chat_id: string
+          created_at: string
+          dish_name: string | null
+          error: string | null
+          id: string
+          organization_id: string | null
+          scenes: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          dish_name?: string | null
+          error?: string | null
+          id?: string
+          organization_id?: string | null
+          scenes?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          dish_name?: string | null
+          error?: string | null
+          id?: string
+          organization_id?: string | null
+          scenes?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_videos_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: true
+            referencedRelation: "ai_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
