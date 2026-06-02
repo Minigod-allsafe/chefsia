@@ -1,10 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getUsageToday, upgradeToPremium } from "@/lib/ai-chef.functions";
+import { getUsageToday } from "@/lib/ai-chef.functions";
 import { Button } from "@/components/ui/button";
 import { Check, Crown, Sparkles } from "lucide-react";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/premium")({
   component: PremiumPage,
@@ -12,19 +11,8 @@ export const Route = createFileRoute("/_authenticated/premium")({
 
 function PremiumPage() {
   const fetchUsage = useServerFn(getUsageToday);
-  const upgrade = useServerFn(upgradeToPremium);
-  const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ["usage"], queryFn: () => fetchUsage() });
   const isPremium = data?.isPremium ?? false;
-
-  const mut = useMutation({
-    mutationFn: () => upgrade(),
-    onSuccess: () => {
-      toast.success("🎉 Bienvenue dans Premium !");
-      qc.invalidateQueries();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   return (
     <div className="mx-auto max-w-4xl p-6 md:p-10">
@@ -56,29 +44,17 @@ function PremiumPage() {
             Premium <Sparkles className="h-5 w-5 text-primary" />
           </h3>
           <p className="mt-1 text-sm text-muted-foreground">Tout débloqué</p>
-          <div className="mt-6 flex items-baseline gap-1">
-            <span className="text-5xl font-bold text-gradient-hero">10$</span>
-            <span className="text-muted-foreground">/mois</span>
-          </div>
           <ul className="mt-6 space-y-3 text-sm">
             <Row text="Chef IA illimité" highlight />
             <Row text="Tous les cours premium" highlight />
             <Row text="Nouveaux cours chaque mois" highlight />
             <Row text="Support prioritaire" highlight />
           </ul>
-          <Button
-            className="mt-8 w-full shadow-glow"
-            size="lg"
-            disabled={isPremium || mut.isPending}
-            onClick={() => mut.mutate()}
-          >
-            {isPremium ? "Vous êtes Premium ✨" : mut.isPending ? "Activation…" : "Passer Premium"}
+          <Button asChild className="mt-8 w-full shadow-glow" size="lg" disabled={isPremium}>
+            <Link to="/billing">
+              {isPremium ? "Vous êtes Premium ✨" : "Voir les plans & payer"}
+            </Link>
           </Button>
-          {!isPremium && (
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Démo : activation immédiate sans paiement.
-            </p>
-          )}
         </div>
       </div>
     </div>
