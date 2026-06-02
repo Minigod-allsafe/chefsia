@@ -240,6 +240,49 @@ function AdminPage() {
           ))}
         </Card>
       </section>
+
+      {/* Journal d'audit */}
+      <section>
+        <h2 className="mb-3 flex items-center gap-2 font-display text-2xl font-semibold">
+          <ShieldAlert className="h-6 w-6 text-primary" /> Journal d'audit
+        </h2>
+        <Card className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="p-3">Date</th>
+                <th className="p-3">Action</th>
+                <th className="p-3">Utilisateur</th>
+                <th className="p-3">IP</th>
+                <th className="p-3">Détails</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(!auditData || auditData.logs.length === 0) && (
+                <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Aucune action enregistrée pour le moment.</td></tr>
+              )}
+              {auditData?.logs.map((l) => {
+                const danger = /failed|denied|error/i.test(l.action);
+                return (
+                  <tr key={l.id} className="border-b last:border-0">
+                    <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(l.created_at).toLocaleString("fr-FR")}</td>
+                    <td className="p-3">
+                      <Badge variant={danger ? "destructive" : "secondary"}>{l.action}</Badge>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-xs">{l.user_email ?? "—"}</div>
+                    </td>
+                    <td className="p-3 text-xs text-muted-foreground">{l.ip_address ?? "—"}</td>
+                    <td className="p-3 text-xs text-muted-foreground max-w-xs truncate">
+                      {l.resource ?? (l.metadata ? JSON.stringify(l.metadata) : "—")}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Card>
+      </section>
     </div>
   );
 }
