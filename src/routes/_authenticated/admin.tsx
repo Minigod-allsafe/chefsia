@@ -2,10 +2,11 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getAdminStats, isAdmin } from "@/lib/admin.functions";
+import { getAuditLogs } from "@/lib/audit.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, Crown, MessageSquare, TrendingUp, GraduationCap, Sparkles, Target, UserPlus } from "lucide-react";
+import { Users, Crown, MessageSquare, TrendingUp, GraduationCap, Sparkles, Target, UserPlus, ShieldAlert } from "lucide-react";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
