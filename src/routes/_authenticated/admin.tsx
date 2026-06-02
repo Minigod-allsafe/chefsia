@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { TenantsAdminSection } from "@/components/admin/TenantsAdminSection";
 import { InvitationsSection } from "@/components/admin/InvitationsSection";
+import { SecurityMonitoringSection } from "@/components/admin/SecurityMonitoringSection";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -248,6 +249,10 @@ function AdminPage() {
 
       {/* Invitations */}
       <InvitationsSection />
+
+      {/* Security monitoring */}
+      <SecurityMonitoringSection />
+
 
       {/* Journal d'audit */}
       <section>
