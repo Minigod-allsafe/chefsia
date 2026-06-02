@@ -1,8 +1,11 @@
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { logout as doLogout } from "@/lib/auth";
-import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X } from "lucide-react";
+import { isAdmin as isAdminFn } from "@/lib/admin.functions";
+import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +29,9 @@ function AuthLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const checkAdmin = useServerFn(isAdminFn);
+  const adminQ = useQuery({ queryKey: ["is-admin"], queryFn: () => checkAdmin(), staleTime: 60_000 });
+  const showAdmin = adminQ.data?.isAdmin;
 
   useEffect(() => setOpen(false), [path]);
 
