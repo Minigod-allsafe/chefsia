@@ -43,104 +43,63 @@ async function generateImage(prompt: string, apiKey: string): Promise<string | n
 async function buildStoryboard(
   recipeMarkdown: string,
   apiKey: string,
-): Promise<{ dish: string; scenes: Omit<Scene, "image">[] } | null> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        {
-          role: "system",
-          content:
-            "Tu es un réalisateur de vidéo culinaire. À partir d'une recette en markdown, génère un storyboard de 5 scènes courtes en français pour une vidéo de présentation.",
-        },
-        {
-          role: "user",
-          content: `Recette:\n\n${recipeMarkdown}\n\nGénère le storyboard via l'outil "make_storyboard".`,
-        },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "make_storyboard",
-            description: "Produit un storyboard de 5 scènes pour la vidéo culinaire.",
-            parameters: {
-              type: "object",
-              properties: {
-                dish: { type: "string", description: "Nom du plat" },
-                scenes: {
-                  type: "array",
-                  minItems: 5,
-                  maxItems: 5,
-                  items: {
-                    type: "object",
-                    properties: {
-                      step: { type: "integer", enum: [1, 2, 3, 4, 5] },
-                      label: {
-                        type: "string",
-                        enum: [...STEP_LABELS],
-                      },
-                      caption: {
-                        type: "string",
-                        description:
-                          "Sous-titre court (≤120 caractères) affiché à l'écran pour cette scène.",
-                      },
-                      image_prompt: {
-                        type: "string",
-                        description:
-                          "Prompt en anglais pour générer une photo culinaire pro de cette étape (style éditorial, lumière naturelle).",
-                      },
-                      duration_ms: {
-                        type: "integer",
-                        minimum: 3000,
-                        maximum: 6000,
-                      },
-                    },
-                    required: ["step", "label", "caption", "image_prompt", "duration_ms"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-              required: ["dish", "scenes"],
-              additionalProperties: false,
-            },
+): Promise<{ dish: string; scenes: Array<Omit<Scene, "image"> & { image_prompt?: string }> }> {
+  const callModel = async (model: string): Promise<string> => {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "system",
+            content:
+              'Tu es un réalisateur de vidéo culinaire. Réponds UNIQUEMENT avec un JSON valide (pas de markdown) au format: {"dish": string, "scenes": [{"step": 1-5, "label": "Ingrédients"|"Préparation"|"Cuisson"|"Dressage"|"Résultat final", "caption": string ≤120 chars, "image_prompt": string en anglais pour photo culinaire, "duration_ms": 3000-6000}]}. Exactement 5 scènes dans l\'ordre des labels.',
           },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: "make_storyboard" } },
-    }),
-  });
-  if (!res.ok) return null;
-  const json = (await res.json()) as any;
-  const call = json.choices?.[0]?.message?.tool_calls?.[0];
-  if (!call?.function?.arguments) return null;
+          { role: "user", content: `Recette:\n\n${recipeMarkdown}` },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(`AI ${res.status}: ${errText.slice(0, 180)}`);
+    }
+    const json = (await res.json()) as any;
+    const content = json.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Réponse IA vide");
+    return content as string;
+  };
+
+  let content: string;
   try {
-    const parsed = JSON.parse(call.function.arguments) as {
-      dish: string;
-      scenes: Array<{
-        step: number;
-        label: string;
-        caption: string;
-        image_prompt: string;
-        duration_ms: number;
-      }>;
-    };
-    return {
-      dish: parsed.dish,
-      scenes: parsed.scenes.map((s) => ({
-        step: s.step,
-        label: s.label,
-        caption: s.caption,
-        duration_ms: s.duration_ms,
-        // image_prompt kept on the fly only (not persisted)
-        ...({ image_prompt: s.image_prompt } as any),
-      })),
-    };
+    content = await callModel("google/gemini-2.5-flash");
   } catch {
-    return null;
+    content = await callModel("google/gemini-3-flash-preview");
   }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error("JSON storyboard invalide");
+  }
+  if (!parsed?.dish || !Array.isArray(parsed?.scenes) || parsed.scenes.length === 0) {
+    throw new Error("Storyboard incomplet");
+  }
+  return {
+    dish: String(parsed.dish),
+    scenes: parsed.scenes.slice(0, 5).map((s: any, i: number) => {
+      const step = Number(s.step ?? i + 1);
+      return {
+        step,
+        label: STEP_LABELS[Math.min(4, Math.max(0, step - 1))],
+        caption: String(s.caption ?? ""),
+        duration_ms: Math.min(6000, Math.max(3000, Number(s.duration_ms ?? 4000))),
+        image_prompt: String(s.image_prompt ?? s.caption ?? ""),
+      };
+    }),
+  };
 }
 
 export const getRecipeVideo = createServerFn({ method: "GET" })
