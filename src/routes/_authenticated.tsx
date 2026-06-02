@@ -115,6 +115,11 @@ function AuthLayout() {
                   <item.icon className="h-5 w-5" /> {item.label}
                 </Link>
               ))}
+              {showAdmin && (
+                <Link to="/admin" className="flex items-center gap-3 rounded-lg px-3 py-3 text-base hover:bg-sidebar-accent">
+                  <Shield className="h-5 w-5" /> Admin
+                </Link>
+              )}
               <Button variant="ghost" className="w-full justify-start mt-4" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" /> Déconnexion
               </Button>
