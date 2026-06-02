@@ -13,8 +13,14 @@ import { Check, X } from "lucide-react";
 export const Route = createFileRoute("/signup")({
   ssr: false,
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
+    if (typeof window === "undefined") return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) throw redirect({ to: "/dashboard" });
+    } catch (err) {
+      if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
+      console.warn("[signup] auth init skipped:", err);
+    }
   },
   component: SignupPage,
 });
