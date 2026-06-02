@@ -25,15 +25,17 @@ function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      logAuditPublic({ data: { action: "login_failed", email, metadata: { reason: error.message } } }).catch(() => {});
       const msg = /rate limit|too many/i.test(error.message)
         ? "Trop de tentatives, veuillez patienter un instant."
         : error.message;
       toast.error(msg);
       return;
     }
+    logAuditPublic({ data: { action: "login_success", email, user_id: signInData.user?.id } }).catch(() => {});
     toast.success("Bienvenue !");
     navigate({ to: "/dashboard" });
   };
