@@ -5,6 +5,14 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 
 const StripeEnvSchema = z.enum(['sandbox', 'live']);
 
+// F-11: server-side allowlist of Stripe price lookup_keys. Only these are
+// purchasable; arbitrary lookup_keys present in the Stripe account (test SKUs,
+// 1¢ trials, archived discounts) cannot be selected by the client.
+const ALLOWED_PRICE_LOOKUP_KEYS = new Set([
+  "pro_monthly", "pro_yearly",
+  "enterprise_monthly", "enterprise_yearly",
+]);
+
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
 
@@ -47,6 +55,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }): Promise<CheckoutResult> => {
     try {
+      if (!ALLOWED_PRICE_LOOKUP_KEYS.has(data.priceId)) {
+        return { error: "Plan invalide" };
+      }
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("email, organization_id").eq("id", context.userId).maybeSingle();

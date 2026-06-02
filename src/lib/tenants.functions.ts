@@ -101,14 +101,25 @@ export const updateUserRole = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const ctx = await loadContext(context.userId);
     if (!ctx.isAdmin) throw new Error("Accès refusé");
+
+    // F-04: any operation (add OR remove) on the super_admin role requires
+    // super_admin privileges. Previously only `add` was guarded, allowing an
+    // org admin to demote a platform super_admin embedded in their org.
     if (data.role === "super_admin" && !ctx.isSuperAdmin) {
-      throw new Error("Seul un super admin peut attribuer ce rôle");
+      throw new Error("Seul un super admin peut gérer ce rôle");
     }
-    // Vérifier que la cible est dans la même org si pas super admin
+
+    // Prevent self-demotion lockout (admin removing their own admin role).
+    if (data.targetUserId === context.userId && data.action === "remove" && data.role === "admin" && !ctx.isSuperAdmin) {
+      throw new Error("Vous ne pouvez pas retirer votre propre rôle admin");
+    }
+
+    // Org admins may only manage users inside their own organization.
     if (!ctx.isSuperAdmin) {
       const { data: t } = await ctx.supabaseAdmin.from("profiles").select("organization_id").eq("id", data.targetUserId).maybeSingle();
       if (!t || t.organization_id !== ctx.orgId) throw new Error("Utilisateur hors de votre organisation");
     }
+
     if (data.action === "add") {
       const { error } = await ctx.supabaseAdmin.from("user_roles").upsert(
         { user_id: data.targetUserId, role: data.role },

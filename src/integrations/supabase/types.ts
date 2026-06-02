@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          organization_id: string | null
           role: string
           user_id: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          organization_id?: string | null
           role: string
           user_id: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          organization_id?: string | null
           role?: string
           user_id?: string
         }
@@ -42,16 +45,19 @@ export type Database = {
         Row: {
           count: number
           day: string
+          organization_id: string | null
           user_id: string
         }
         Insert: {
           count?: number
           day?: string
+          organization_id?: string | null
           user_id: string
         }
         Update: {
           count?: number
           day?: string
+          organization_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -106,18 +112,21 @@ export type Database = {
       course_progress: {
         Row: {
           course_id: string
+          organization_id: string | null
           progress_pct: number
           updated_at: string
           user_id: string
         }
         Insert: {
           course_id: string
+          organization_id?: string | null
           progress_pct?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           course_id?: string
+          organization_id?: string | null
           progress_pct?: number
           updated_at?: string
           user_id?: string

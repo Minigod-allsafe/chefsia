@@ -2,15 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-async function assertAdmin(userId: string) {
+// F-06: only super_admins can read global stats. Org admins must use the
+// per-org dashboards instead (which are scoped via RLS).
+async function assertSuperAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .eq("role", "admin")
+    .eq("role", "super_admin")
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Accès refusé : réservé aux administrateurs.");
+  if (!data) throw new Error("Accès refusé : réservé aux super admins.");
 }
 
 export const isAdmin = createServerFn({ method: "GET" })
@@ -20,19 +22,31 @@ export const isAdmin = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    return { isAdmin: !!data };
+      .in("role", ["admin", "super_admin"]);
+    return { isAdmin: (data?.length ?? 0) > 0 };
   });
 
 export const getAdminStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
+    // F-06: super_admin → global view; org admin → strictly scoped to their org.
+    const [{ data: roles }, { data: profile }] = await Promise.all([
+      supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId),
+      supabaseAdmin.from("profiles").select("organization_id").eq("id", context.userId).maybeSingle(),
+    ]);
+    const roleSet = new Set((roles ?? []).map((r) => r.role));
+    const isSuperAdmin = roleSet.has("super_admin");
+    const isOrgAdmin = roleSet.has("admin");
+    if (!isSuperAdmin && !isOrgAdmin) throw new Error("Accès refusé");
+    const orgId = profile?.organization_id;
+    if (!isSuperAdmin && !orgId) throw new Error("Aucune organisation");
 
     const today = new Date();
     const since30 = new Date(today.getTime() - 30 * 86400_000).toISOString();
     const since7 = new Date(today.getTime() - 7 * 86400_000).toISOString();
+
+    // Scope helper: applies organization_id filter when not super_admin.
+    const scope = <T,>(q: T): T => (isSuperAdmin ? q : (q as any).eq("organization_id", orgId));
 
     const [
       profilesAll,
@@ -45,15 +59,15 @@ export const getAdminStats = createServerFn({ method: "GET" })
       coursesAll,
       progressAll,
     ] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, email, full_name, is_premium, created_at").order("created_at", { ascending: false }),
-      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).eq("is_premium", true),
-      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since7),
-      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since30),
-      supabaseAdmin.from("ai_chats").select("id", { count: "exact", head: true }),
-      supabaseAdmin.from("ai_chats").select("id, user_id, role, content, created_at").gte("created_at", since30).order("created_at", { ascending: false }),
-      supabaseAdmin.from("ai_usage").select("day, count, user_id").gte("day", since30.slice(0, 10)),
+      scope(supabaseAdmin.from("profiles").select("id, email, full_name, is_premium, created_at, organization_id").order("created_at", { ascending: false })),
+      scope(supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).eq("is_premium", true)),
+      scope(supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since7)),
+      scope(supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since30)),
+      scope(supabaseAdmin.from("ai_chats").select("id", { count: "exact", head: true })),
+      scope(supabaseAdmin.from("ai_chats").select("id, user_id, role, content, created_at, organization_id").gte("created_at", since30).order("created_at", { ascending: false })),
+      scope(supabaseAdmin.from("ai_usage").select("day, count, user_id, organization_id").gte("day", since30.slice(0, 10))),
       supabaseAdmin.from("courses").select("id, title, is_premium"),
-      supabaseAdmin.from("course_progress").select("course_id, user_id, progress_pct"),
+      scope(supabaseAdmin.from("course_progress").select("course_id, user_id, progress_pct, organization_id")),
     ]);
 
     const totalUsers = profilesAll.data?.length ?? 0;

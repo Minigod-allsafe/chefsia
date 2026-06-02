@@ -270,10 +270,6 @@ export const updateProfile = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const upgradeToPremium = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    await supabase.from("profiles").update({ is_premium: true }).eq("id", userId);
-    return { ok: true };
-  });
+// REMOVED: upgradeToPremium. Premium status is set EXCLUSIVELY by the Stripe
+// webhook (`/api/public/payments/webhook`) after signature verification.
+// Any client-driven self-promotion path is a billing bypass (see F-01).

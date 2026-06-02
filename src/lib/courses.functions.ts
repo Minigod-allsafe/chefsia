@@ -24,9 +24,15 @@ export const listCoursesWithProgress = createServerFn({ method: "GET" })
       supabase.from("profiles").select("is_premium").eq("id", userId).single(),
     ]);
     const map = new Map((progress ?? []).map((p) => [p.course_id, p.progress_pct]));
+    const isPremium = profile?.is_premium ?? false;
     return {
-      isPremium: profile?.is_premium ?? false,
-      courses: (courses ?? []).map((c) => ({ ...c, progress_pct: map.get(c.id) ?? 0 })),
+      isPremium,
+      courses: (courses ?? []).map((c) => ({
+        ...c,
+        // F-03: never expose premium video URLs to non-premium users.
+        video_url: c.is_premium && !isPremium ? null : c.video_url,
+        progress_pct: map.get(c.id) ?? 0,
+      })),
     };
   });
 
