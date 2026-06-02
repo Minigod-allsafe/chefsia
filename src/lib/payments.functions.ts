@@ -82,6 +82,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         ui_mode: "embedded_page",
         return_url: data.returnUrl,
         customer: customerId,
+        // Stripe gère TVA + conformité fiscale de bout en bout (~80 pays).
+        managed_payments: { enabled: true },
         metadata: {
           userId: context.userId,
           organizationId: profile?.organization_id ?? "",
