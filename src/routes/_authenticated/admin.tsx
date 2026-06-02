@@ -10,6 +10,7 @@ import { Users, Crown, MessageSquare, TrendingUp, GraduationCap, Sparkles, Targe
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import { TenantsAdminSection } from "@/components/admin/TenantsAdminSection";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -240,6 +241,9 @@ function AdminPage() {
           ))}
         </Card>
       </section>
+
+      {/* Multi-tenant management */}
+      <TenantsAdminSection />
 
       {/* Journal d'audit */}
       <section>
