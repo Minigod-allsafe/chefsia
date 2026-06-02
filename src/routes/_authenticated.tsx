@@ -62,6 +62,19 @@ function AuthLayout() {
               </Link>
             );
           })}
+          {showAdmin && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                path === "/admin"
+                  ? "bg-primary text-primary-foreground shadow-glow"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              )}
+            >
+              <Shield className="h-4 w-4" /> Admin
+            </Link>
+          )}
         </nav>
         <div className="border-t p-3">
           <Button variant="ghost" className="w-full justify-start" onClick={logout}>
