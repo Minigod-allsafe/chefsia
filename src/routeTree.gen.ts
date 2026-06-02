@@ -20,6 +20,7 @@ import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCoursRouteImport } from './routes/_authenticated/cours'
 import { Route as AuthenticatedChefRouteImport } from './routes/_authenticated/chef'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -75,6 +76,11 @@ const AuthenticatedChefRoute = AuthenticatedChefRouteImport.update({
   path: '/chef',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/chef': typeof AuthenticatedChefRoute
   '/cours': typeof AuthenticatedCoursRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/chef': typeof AuthenticatedChefRoute
   '/cours': typeof AuthenticatedCoursRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/chef': typeof AuthenticatedChefRoute
   '/_authenticated/cours': typeof AuthenticatedCoursRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/admin'
     | '/chef'
     | '/cours'
     | '/dashboard'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/admin'
     | '/chef'
     | '/cours'
     | '/dashboard'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/_authenticated/admin'
     | '/_authenticated/chef'
     | '/_authenticated/cours'
     | '/_authenticated/dashboard'
@@ -242,10 +254,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChefRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedChefRoute: typeof AuthenticatedChefRoute
   AuthenticatedCoursRoute: typeof AuthenticatedCoursRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -254,6 +274,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedChefRoute: AuthenticatedChefRoute,
   AuthenticatedCoursRoute: AuthenticatedCoursRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -276,3 +297,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
