@@ -2,15 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-async function assertAdmin(userId: string) {
+// F-06: only super_admins can read global stats. Org admins must use the
+// per-org dashboards instead (which are scoped via RLS).
+async function assertSuperAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .eq("role", "admin")
+    .eq("role", "super_admin")
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Accès refusé : réservé aux administrateurs.");
+  if (!data) throw new Error("Accès refusé : réservé aux super admins.");
 }
 
 export const isAdmin = createServerFn({ method: "GET" })
@@ -20,15 +22,14 @@ export const isAdmin = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    return { isAdmin: !!data };
+      .in("role", ["admin", "super_admin"]);
+    return { isAdmin: (data?.length ?? 0) > 0 };
   });
 
 export const getAdminStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
+    await assertSuperAdmin(context.userId);
 
     const today = new Date();
     const since30 = new Date(today.getTime() - 30 * 86400_000).toISOString();

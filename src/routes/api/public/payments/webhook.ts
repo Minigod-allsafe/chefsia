@@ -27,6 +27,30 @@ async function applySubscription(subscription: any, env: StripeEnv) {
   const plan = ["canceled", "incomplete_expired", "unpaid"].includes(subscription.status) ? "free" : priceToPlan(priceId);
 
   if (organizationId) {
+    // F-12: verify the Stripe customer matches the org's stored customer
+    // before mutating. If the org has no customer yet (first subscription),
+    // accept and bind. If it has a different customer, reject — prevents a
+    // tampered metadata.organizationId from hijacking another tenant's plan.
+    const { data: org } = await getSupabase()
+      .from("organizations")
+      .select("stripe_customer_id")
+      .eq("id", organizationId)
+      .maybeSingle();
+
+    if (org && org.stripe_customer_id && org.stripe_customer_id !== subscription.customer) {
+      console.warn("Webhook: customer/org mismatch — refusing apply", {
+        org: organizationId, expected: org.stripe_customer_id, got: subscription.customer,
+      });
+      await getSupabase().from("audit_logs").insert({
+        user_id: userId ?? null,
+        organization_id: organizationId,
+        action: "subscription_rejected_customer_mismatch",
+        resource: subscription.id,
+        metadata: { expected: org.stripe_customer_id, got: subscription.customer, env },
+      });
+      return;
+    }
+
     await getSupabase().from("organizations").update({
       stripe_customer_id: subscription.customer,
       stripe_subscription_id: subscription.id,
@@ -67,17 +91,34 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const rawEnv = new URL(request.url).searchParams.get("env");
-        if (rawEnv !== "sandbox" && rawEnv !== "live") {
-          return Response.json({ received: true, ignored: "invalid env" });
+        // F-08: do NOT trust ?env= alone. Try sandbox first, then live; whichever
+        // secret produces a valid HMAC signature determines the true environment.
+        // The query param is kept only as an optimisation hint.
+        const hint = new URL(request.url).searchParams.get("env");
+        const order: StripeEnv[] = hint === "live"
+          ? ["live", "sandbox"]
+          : ["sandbox", "live"];
+
+        // Clone body once so we can retry signature verification with each secret.
+        const rawBody = await request.text();
+        const cloneRequest = (env: StripeEnv) =>
+          new Request(request.url, {
+            method: request.method,
+            headers: request.headers,
+            body: rawBody,
+          });
+
+        let lastError: unknown = null;
+        for (const env of order) {
+          try {
+            await handleWebhook(cloneRequest(env), env);
+            return Response.json({ received: true, env });
+          } catch (e) {
+            lastError = e;
+          }
         }
-        try {
-          await handleWebhook(request, rawEnv as StripeEnv);
-          return Response.json({ received: true });
-        } catch (e) {
-          console.error("Webhook error:", e);
-          return new Response("Webhook error", { status: 400 });
-        }
+        console.error("Webhook error (all envs failed):", lastError);
+        return new Response("Webhook signature verification failed", { status: 400 });
       },
     },
   },

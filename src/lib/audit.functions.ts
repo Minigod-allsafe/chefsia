@@ -62,7 +62,7 @@ export const logAudit = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Admin-only: list recent audit logs. */
+/** Admin-only: list recent audit logs (super_admin only — global view). */
 export const getAuditLogs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -70,13 +70,13 @@ export const getAuditLogs = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
-      .eq("role", "admin")
+      .eq("role", "super_admin")
       .maybeSingle();
-    if (!roleRow) throw new Error("Accès refusé : réservé aux administrateurs.");
+    if (!roleRow) throw new Error("Accès refusé : réservé aux super admins.");
 
     const { data, error } = await supabaseAdmin
       .from("audit_logs")
-      .select("id, user_id, user_email, action, resource, metadata, ip_address, user_agent, created_at")
+      .select("id, user_id, user_email, action, resource, metadata, ip_address, user_agent, created_at, organization_id")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
