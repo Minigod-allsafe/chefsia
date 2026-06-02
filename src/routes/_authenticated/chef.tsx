@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { RecipeVideoPlayer } from "@/components/RecipeVideoPlayer";
 
 const search = z.object({ q: z.string().optional() });
 
@@ -17,7 +18,13 @@ export const Route = createFileRoute("/_authenticated/chef")({
   component: ChefPage,
 });
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  chatId?: string | null;
+  isRecipe?: boolean;
+};
+
 
 function ChefPage() {
   const { q } = Route.useSearch();
