@@ -129,10 +129,12 @@ export function IngredientsBackground({
         const jitterY = (Math.cos(i * 78.233) * 43758.5453) % 1;
         const x = Math.min(0.96, Math.max(0.04, cx + jitterX * 0.12));
         const y = Math.min(0.96, Math.max(0.04, cy + jitterY * 0.12));
-        const depth = 0.25 + ((i * 37) % 100) / 130; // 0.25..1
-        const size = 22 + ((i * 53) % 100) * 0.38; // 22..60px
-        const blur = depth < 0.45 ? 1.2 : 0;
-        const opacity = 0.18 + depth * 0.35; // 0.27..0.53
+        const depth = 0.3 + ((i * 37) % 100) / 250; // 0.30..0.70 — plage resserrée
+        const size = 18 + ((i * 53) % 100) * 0.22; // 18..40px — plus discret
+        // Flou progressif selon la profondeur (plus c'est lointain, plus c'est flou)
+        const blur = depth < 0.4 ? 2.2 : depth < 0.55 ? 1.2 : 0.4;
+        // Opacité douce et cohérente: 0.10 (loin) → 0.22 (proche)
+        const opacity = 0.1 + (depth - 0.3) * 0.3;
 
         return (
           <span
@@ -146,10 +148,10 @@ export function IngredientsBackground({
             style={{
               left: `${x * 100}%`,
               top: `${y * 100}%`,
-              fontSize: `${size}px`,
+              fontSize: `clamp(${Math.round(size * 0.6)}px, ${(size / 16).toFixed(2)}vw + ${Math.round(size * 0.4)}px, ${Math.round(size)}px)`,
               opacity,
-              filter: blur ? `blur(${blur}px)` : undefined,
-              textShadow: "0 6px 24px rgba(0,0,0,0.35)",
+              filter: `blur(${blur}px)`,
+              textShadow: "0 4px 18px rgba(0,0,0,0.25)",
             }}
           >
             {emoji}
