@@ -1,8 +1,11 @@
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { logout as doLogout } from "@/lib/auth";
-import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X } from "lucide-react";
+import { isAdmin as isAdminFn } from "@/lib/admin.functions";
+import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +29,9 @@ function AuthLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const checkAdmin = useServerFn(isAdminFn);
+  const adminQ = useQuery({ queryKey: ["is-admin"], queryFn: () => checkAdmin(), staleTime: 60_000 });
+  const showAdmin = adminQ.data?.isAdmin;
 
   useEffect(() => setOpen(false), [path]);
 
@@ -56,6 +62,19 @@ function AuthLayout() {
               </Link>
             );
           })}
+          {showAdmin && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+                path === "/admin"
+                  ? "bg-primary text-primary-foreground shadow-glow"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              )}
+            >
+              <Shield className="h-4 w-4" /> Admin
+            </Link>
+          )}
         </nav>
         <div className="border-t p-3">
           <Button variant="ghost" className="w-full justify-start" onClick={logout}>
@@ -96,6 +115,11 @@ function AuthLayout() {
                   <item.icon className="h-5 w-5" /> {item.label}
                 </Link>
               ))}
+              {showAdmin && (
+                <Link to="/admin" className="flex items-center gap-3 rounded-lg px-3 py-3 text-base hover:bg-sidebar-accent">
+                  <Shield className="h-5 w-5" /> Admin
+                </Link>
+              )}
               <Button variant="ghost" className="w-full justify-start mt-4" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" /> Déconnexion
               </Button>
