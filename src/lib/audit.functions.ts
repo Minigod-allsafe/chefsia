@@ -31,7 +31,7 @@ export const logAuditPublic = createServerFn({ method: "POST" })
       user_email: data.email ?? null,
       action: data.action,
       resource: data.resource ?? null,
-      metadata: data.metadata ?? null,
+      metadata: (data.metadata ?? null) as any,
       ip_address: ip,
       user_agent: ua,
     });
@@ -55,7 +55,7 @@ export const logAudit = createServerFn({ method: "POST" })
       user_email: data.email ?? (context.claims.email as string | undefined) ?? null,
       action: data.action,
       resource: data.resource ?? null,
-      metadata: data.metadata ?? null,
+      metadata: (data.metadata ?? null) as any,
       ip_address: ip,
       user_agent: ua,
     });
