@@ -117,11 +117,6 @@ export const askChef = createServerFn({ method: "POST" })
       resource: "ai-chef",
       metadata: { prompt_preview: preview, is_premium: isPremium, messages_count: data.messages.length },
     });
-        throw new Error(
-          `Limite quotidienne atteinte (${FREE_DAILY_LIMIT}/jour). Passez à Premium pour un usage illimité.`,
-        );
-      }
-    }
 
     // Call Lovable AI
     const apiKey = process.env.LOVABLE_API_KEY;
