@@ -130,3 +130,84 @@ export const createPortalSession = createServerFn({ method: "POST" })
       return { error: getStripeErrorMessage(error) };
     }
   });
+
+// ============== Stripe data reads (subscriptions + invoices) ==============
+
+type Invoice = {
+  id: string;
+  status: string | null;
+  amount_paid: number;
+  currency: string;
+  created: string | null;
+  hosted_invoice_url: string | null;
+  pdf_url: string | null;
+};
+type ActiveSub = {
+  id: string;
+  status: string;
+  plan: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+};
+type StripeDataResult =
+  | { subscriptions: ActiveSub[]; invoices: Invoice[] }
+  | { error: string };
+
+export const getStripeData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ environment: StripeEnvSchema }).parse)
+  .handler(async ({ data, context }): Promise<StripeDataResult> => {
+    try {
+      const stripe = createStripeClient(data.environment);
+      const userId = context.userId;
+      if (!/^[a-zA-Z0-9-]+$/.test(userId)) throw new Error("Invalid userId");
+
+      const ids = new Set<string>();
+      const subSearch = await stripe.subscriptions.search({
+        query: `metadata['userId']:'${userId}'`, limit: 100,
+      });
+      for (const s of subSearch.data) {
+        const cid = typeof s.customer === "string" ? s.customer : s.customer?.id;
+        if (cid) ids.add(cid);
+      }
+      const custSearch = await stripe.customers.search({
+        query: `metadata['userId']:'${userId}'`, limit: 100,
+      });
+      for (const c of custSearch.data) ids.add(c.id);
+
+      if (ids.size === 0) return { subscriptions: [], invoices: [] };
+
+      const subscriptions: ActiveSub[] = [];
+      const invoices: Invoice[] = [];
+      for (const customerId of ids) {
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
+        for (const sub of subs.data) {
+          const item = sub.items?.data?.[0];
+          const periodEnd = item?.current_period_end ?? (sub as any).current_period_end;
+          subscriptions.push({
+            id: sub.id,
+            status: sub.status,
+            plan: item?.price?.lookup_key ?? item?.price?.metadata?.lovable_external_id ?? null,
+            current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+            cancel_at_period_end: sub.cancel_at_period_end ?? false,
+          });
+        }
+        const invs = await stripe.invoices.list({ customer: customerId, limit: 50 });
+        for (const inv of invs.data) {
+          invoices.push({
+            id: inv.id ?? "",
+            status: inv.status ?? null,
+            amount_paid: (inv.amount_paid ?? 0) / 100,
+            currency: inv.currency ?? "eur",
+            created: inv.created ? new Date(inv.created * 1000).toISOString() : null,
+            hosted_invoice_url: inv.hosted_invoice_url ?? null,
+            pdf_url: inv.invoice_pdf ?? null,
+          });
+        }
+      }
+      invoices.sort((a, b) => (b.created ?? "").localeCompare(a.created ?? ""));
+      return { subscriptions, invoices };
+    } catch (error) {
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
