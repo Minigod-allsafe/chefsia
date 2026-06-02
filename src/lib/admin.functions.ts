@@ -46,8 +46,7 @@ export const getAdminStats = createServerFn({ method: "GET" })
     const since7 = new Date(today.getTime() - 7 * 86400_000).toISOString();
 
     // Scope helper: applies organization_id filter when not super_admin.
-    const scope = <T extends { eq: (col: string, val: any) => T }>(q: T): T =>
-      isSuperAdmin ? q : q.eq("organization_id", orgId);
+    const scope = (q: any): any => (isSuperAdmin ? q : q.eq("organization_id", orgId));
 
     const [
       profilesAll,
