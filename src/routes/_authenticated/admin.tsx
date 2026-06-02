@@ -42,9 +42,15 @@ function Kpi({ icon: Icon, label, value, sub }: { icon: any; label: string; valu
 
 function AdminPage() {
   const fetchStats = useServerFn(getAdminStats);
+  const fetchLogs = useServerFn(getAuditLogs);
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: () => fetchStats(),
+    refetchInterval: 30_000,
+  });
+  const { data: auditData } = useQuery({
+    queryKey: ["admin-audit"],
+    queryFn: () => fetchLogs(),
     refetchInterval: 30_000,
   });
 
