@@ -116,8 +116,10 @@ export const getRecipeVideo = createServerFn({ method: "GET" })
   });
 
 // Coût d'une génération vidéo (storyboard + 5 images) en crédits quotidiens.
-const VIDEO_CREDIT_COST = 2;
+// 1 crédit => les 3 requêtes gratuites quotidiennes autorisent jusqu'à 3 vidéos.
+const VIDEO_CREDIT_COST = 1;
 const FREE_DAILY_LIMIT = 3;
+
 
 export const generateRecipeVideo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
