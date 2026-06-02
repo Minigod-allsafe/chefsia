@@ -11,6 +11,7 @@ import { validatePassword } from "@/lib/password";
 import { Check, X } from "lucide-react";
 
 export const Route = createFileRoute("/signup")({
+  ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/dashboard" });
