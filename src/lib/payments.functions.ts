@@ -9,6 +9,9 @@ const StripeEnvSchema = z.enum(['sandbox', 'live']);
 // purchasable; arbitrary lookup_keys present in the Stripe account (test SKUs,
 // 1¢ trials, archived discounts) cannot be selected by the client.
 const ALLOWED_PRICE_LOOKUP_KEYS = new Set([
+  "premium_monthly", "premium_yearly",
+  "business_monthly", "business_yearly",
+  // legacy keys kept temporarily for in-flight checkout sessions
   "pro_monthly", "pro_yearly",
   "enterprise_monthly", "enterprise_yearly",
 ]);
