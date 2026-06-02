@@ -74,6 +74,9 @@ export const askChef = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const email = (context.claims?.email as string | undefined) ?? null;
+    const lastUserMsg = data.messages[data.messages.length - 1]?.content ?? "";
+    const preview = lastUserMsg.slice(0, 200);
 
     // Check premium
     const { data: profile } = await supabase
@@ -94,6 +97,26 @@ export const askChef = createServerFn({ method: "POST" })
         .maybeSingle();
       const used = usage?.count ?? 0;
       if (used >= FREE_DAILY_LIMIT) {
+        await audit({
+          user_id: userId,
+          email,
+          action: "chef_limit_reached",
+          resource: "ai-chef",
+          metadata: { used, limit: FREE_DAILY_LIMIT, prompt_preview: preview },
+        });
+        throw new Error(
+          `Limite quotidienne atteinte (${FREE_DAILY_LIMIT}/jour). Passez à Premium pour un usage illimité.`,
+        );
+      }
+    }
+
+    await audit({
+      user_id: userId,
+      email,
+      action: "chef_request",
+      resource: "ai-chef",
+      metadata: { prompt_preview: preview, is_premium: isPremium, messages_count: data.messages.length },
+    });
         throw new Error(
           `Limite quotidienne atteinte (${FREE_DAILY_LIMIT}/jour). Passez à Premium pour un usage illimité.`,
         );
