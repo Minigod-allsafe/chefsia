@@ -9,6 +9,7 @@ import { ChefHat } from "lucide-react";
 import { logAuditPublic } from "@/lib/audit.functions";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/dashboard" });
