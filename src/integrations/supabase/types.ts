@@ -63,6 +63,7 @@ export type Database = {
           id: string
           ip_address: string | null
           metadata: Json | null
+          organization_id: string | null
           resource: string | null
           user_agent: string | null
           user_email: string | null
@@ -74,6 +75,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          organization_id?: string | null
           resource?: string | null
           user_agent?: string | null
           user_email?: string | null
@@ -85,12 +87,21 @@ export type Database = {
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          organization_id?: string | null
           resource?: string | null
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       course_progress: {
         Row: {
@@ -157,6 +168,33 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plan: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plan?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -164,6 +202,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_premium: boolean
+          organization_id: string
           phone: string | null
         }
         Insert: {
@@ -172,6 +211,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_premium?: boolean
+          organization_id: string
           phone?: string | null
         }
         Update: {
@@ -180,9 +220,18 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_premium?: boolean
+          organization_id?: string
           phone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -210,6 +259,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_org_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -217,9 +267,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_org_admin: { Args: { _user_id?: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "super_admin" | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -347,7 +399,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "super_admin", "manager"],
     },
   },
 } as const
