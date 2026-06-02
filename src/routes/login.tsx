@@ -11,8 +11,15 @@ import { logAuditPublic } from "@/lib/audit.functions";
 export const Route = createFileRoute("/login")({
   ssr: false,
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
+    if (typeof window === "undefined") return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) throw redirect({ to: "/dashboard" });
+    } catch (err) {
+      // Re-throw router redirects; swallow init errors (e.g. missing env) so the page still renders.
+      if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
+      console.warn("[login] auth init skipped:", err);
+    }
   },
   component: LoginPage,
 });
