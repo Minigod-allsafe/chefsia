@@ -92,9 +92,11 @@ export function IngredientsBackground({
         const dx = Math.cos(t) * p.driftX;
         const dy = Math.sin(t * 1.3) * p.driftY;
 
-        // Parallax: deeper layers move more with mouse
-        const px = mx * p.depth * 60;
-        const py = my * p.depth * 60;
+        // Parallax: échelle relative au viewport pour un effet constant
+        // (≈3.5% de la plus petite dimension, pondéré par la profondeur).
+        const parallaxAmp = Math.min(window.innerWidth, window.innerHeight) * 0.035;
+        const px = mx * p.depth * parallaxAmp;
+        const py = my * p.depth * parallaxAmp;
 
         if (!reduceMotion) {
           p.rot += (p.rotSpeed * dt) / 1000;
