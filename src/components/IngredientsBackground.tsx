@@ -57,11 +57,11 @@ export function IngredientsBackground({
         baseY: parseFloat(el.dataset.y ?? "50"),
         size: parseFloat(el.dataset.size ?? "32"),
         depth,
-        driftX: 30 + Math.random() * 50, // px amplitude
-        driftY: 30 + Math.random() * 50,
-        driftSpeed: 0.00008 + Math.random() * 0.00012,
+        driftX: 14 + Math.random() * 22, // px amplitude — plus calme
+        driftY: 14 + Math.random() * 22,
+        driftSpeed: 0.00006 + Math.random() * 0.00008,
         driftPhase: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 14, // -7..7 deg/sec
+        rotSpeed: (Math.random() - 0.5) * 6, // -3..3 deg/sec — rotation plus douce
         rot: Math.random() * 360,
       };
     });
