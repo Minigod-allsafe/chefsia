@@ -31,7 +31,10 @@ function AuthLayout() {
   const [open, setOpen] = useState(false);
   const checkAdmin = useServerFn(isAdminFn);
   const adminQ = useQuery({ queryKey: ["is-admin"], queryFn: () => checkAdmin(), staleTime: 60_000 });
-  const showAdmin = adminQ.data?.isAdmin;
+  // Ne JAMAIS afficher le lien Admin tant que la vérification serveur n'est pas terminée
+  // (évite tout flash et toute énumération côté client).
+  const showAdmin = !adminQ.isLoading && adminQ.isSuccess && adminQ.data?.isAdmin === true;
+
 
   useEffect(() => setOpen(false), [path]);
 
