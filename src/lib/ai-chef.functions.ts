@@ -1,6 +1,39 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+function getReqMeta() {
+  let ip: string | null = null;
+  let ua: string | null = null;
+  try { ip = getRequestIP({ xForwardedFor: true }) ?? null; } catch {}
+  try { ua = getRequestHeader("user-agent") ?? null; } catch {}
+  return { ip, ua };
+}
+
+async function audit(params: {
+  user_id: string;
+  email?: string | null;
+  action: string;
+  resource?: string | null;
+  metadata?: Record<string, unknown> | null;
+}) {
+  const { ip, ua } = getReqMeta();
+  try {
+    await supabaseAdmin.from("audit_logs").insert({
+      user_id: params.user_id,
+      user_email: params.email ?? null,
+      action: params.action,
+      resource: params.resource ?? null,
+      metadata: (params.metadata ?? null) as any,
+      ip_address: ip,
+      user_agent: ua,
+    });
+  } catch {
+    // best effort
+  }
+}
 
 const FREE_DAILY_LIMIT = 3;
 
@@ -41,6 +74,9 @@ export const askChef = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const email = (context.claims?.email as string | undefined) ?? null;
+    const lastUserMsg = data.messages[data.messages.length - 1]?.content ?? "";
+    const preview = lastUserMsg.slice(0, 200);
 
     // Check premium
     const { data: profile } = await supabase
@@ -61,11 +97,26 @@ export const askChef = createServerFn({ method: "POST" })
         .maybeSingle();
       const used = usage?.count ?? 0;
       if (used >= FREE_DAILY_LIMIT) {
+        await audit({
+          user_id: userId,
+          email,
+          action: "chef_limit_reached",
+          resource: "ai-chef",
+          metadata: { used, limit: FREE_DAILY_LIMIT, prompt_preview: preview },
+        });
         throw new Error(
           `Limite quotidienne atteinte (${FREE_DAILY_LIMIT}/jour). Passez à Premium pour un usage illimité.`,
         );
       }
     }
+
+    await audit({
+      user_id: userId,
+      email,
+      action: "chef_request",
+      resource: "ai-chef",
+      metadata: { prompt_preview: preview, is_premium: isPremium, messages_count: data.messages.length },
+    });
 
     // Call Lovable AI
     const apiKey = process.env.LOVABLE_API_KEY;
@@ -143,15 +194,23 @@ export const askChef = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("day", today)
         .maybeSingle();
+      const newCount = (existing?.count ?? 0) + 1;
       if (existing) {
         await supabase
           .from("ai_usage")
-          .update({ count: existing.count + 1 })
+          .update({ count: newCount })
           .eq("user_id", userId)
           .eq("day", today);
       } else {
         await supabase.from("ai_usage").insert({ user_id: userId, day: today, count: 1 });
       }
+      await audit({
+        user_id: userId,
+        email,
+        action: "chef_credit_consumed",
+        resource: "ai-chef",
+        metadata: { used: newCount, limit: FREE_DAILY_LIMIT, remaining: Math.max(0, FREE_DAILY_LIMIT - newCount) },
+      });
     }
 
     return { reply, isPremium };
