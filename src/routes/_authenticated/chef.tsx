@@ -51,8 +51,18 @@ function ChefPage() {
     setInput("");
     setLoading(true);
     try {
-      const res = await fetchAsk({ data: { messages: next } });
-      setMessages([...next, { role: "assistant", content: res.reply }]);
+      const res = await fetchAsk({
+        data: { messages: next.map((m) => ({ role: m.role, content: m.content })) },
+      });
+      setMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: res.reply,
+          chatId: res.assistantChatId ?? null,
+          isRecipe: Boolean(res.isRecipe),
+        },
+      ]);
       qc.invalidateQueries({ queryKey: ["usage"] });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur";
@@ -62,6 +72,7 @@ function ChefPage() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (q && !sentInitial.current) {
