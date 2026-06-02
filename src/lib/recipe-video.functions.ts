@@ -156,6 +156,10 @@ export const getRecipeVideo = createServerFn({ method: "GET" })
     return row ?? null;
   });
 
+// Coût d'une génération vidéo (storyboard + 5 images) en crédits quotidiens.
+const VIDEO_CREDIT_COST = 2;
+const FREE_DAILY_LIMIT = 3;
+
 export const generateRecipeVideo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ chatId: z.string().uuid() }).parse(d))
@@ -181,6 +185,46 @@ export const generateRecipeVideo = createServerFn({ method: "POST" })
     if (chatErr || !chat) throw new Error("Recette introuvable");
     if (chat.user_id !== userId) throw new Error("Accès refusé");
     if (chat.role !== "assistant") throw new Error("Message non-recette");
+
+    // --- Vérification des crédits avant toute consommation API ---
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", userId)
+      .single();
+    const isPremium = profile?.is_premium ?? false;
+    const today = new Date().toISOString().slice(0, 10);
+    let usedToday = 0;
+    if (!isPremium) {
+      const { data: usage } = await supabase
+        .from("ai_usage")
+        .select("count")
+        .eq("user_id", userId)
+        .eq("day", today)
+        .maybeSingle();
+      usedToday = usage?.count ?? 0;
+      const remaining = Math.max(0, FREE_DAILY_LIMIT - usedToday);
+      if (remaining < VIDEO_CREDIT_COST) {
+        const msg =
+          remaining === 0
+            ? `Crédits épuisés pour aujourd'hui (${FREE_DAILY_LIMIT}/jour en plan Free). La génération vidéo coûte ${VIDEO_CREDIT_COST} crédits. Passez Premium pour un usage illimité.`
+            : `Crédits insuffisants : il vous reste ${remaining} crédit(s) aujourd'hui mais la vidéo en coûte ${VIDEO_CREDIT_COST}. Passez Premium pour continuer.`;
+        // Persist a failed row so the player UI can display the message.
+        const failPayload = {
+          chat_id: data.chatId,
+          user_id: userId,
+          status: "failed" as const,
+          scenes: [],
+          error: msg,
+        };
+        if (existing) {
+          await supabase.from("recipe_videos").update(failPayload).eq("id", existing.id);
+        } else {
+          await supabase.from("recipe_videos").insert(failPayload);
+        }
+        throw new Error(msg);
+      }
+    }
 
     // Insert pending row
     const upsertPayload = {
@@ -230,6 +274,28 @@ export const generateRecipeVideo = createServerFn({ method: "POST" })
         })
         .eq("chat_id", data.chatId);
       if (updErr) throw new Error(updErr.message);
+
+      // --- Déduction des crédits après succès uniquement ---
+      if (!isPremium) {
+        const newCount = usedToday + VIDEO_CREDIT_COST;
+        const { data: existingUsage } = await supabase
+          .from("ai_usage")
+          .select("count")
+          .eq("user_id", userId)
+          .eq("day", today)
+          .maybeSingle();
+        if (existingUsage) {
+          await supabase
+            .from("ai_usage")
+            .update({ count: newCount })
+            .eq("user_id", userId)
+            .eq("day", today);
+        } else {
+          await supabase
+            .from("ai_usage")
+            .insert({ user_id: userId, day: today, count: VIDEO_CREDIT_COST });
+        }
+      }
 
       return { status: "ready" as const, dish: storyboard.dish };
     } catch (e) {
