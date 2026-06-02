@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { ChefHat, Sparkles, GraduationCap, Check } from "lucide-react";
 import heroChef from "@/assets/hero-chef.jpg";
+import { IngredientsBackground } from "@/components/IngredientsBackground";
 
 export const Route = createFileRoute("/")({
   component: Landing,
