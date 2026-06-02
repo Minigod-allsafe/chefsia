@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { logout as doLogout } from "@/lib/auth";
 import { Crown } from "lucide-react";
 import { toast } from "sonner";
+import { MfaSection } from "@/components/MfaSection";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
