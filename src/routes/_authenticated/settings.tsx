@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { logout as doLogout } from "@/lib/auth";
 import { Crown } from "lucide-react";
 import { toast } from "sonner";
+import { MfaSection } from "@/components/MfaSection";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -99,6 +100,8 @@ function SettingsPage() {
           {saving ? "Enregistrement…" : "Enregistrer les modifications"}
         </Button>
       </form>
+
+      <MfaSection />
 
       <section className="mt-6 rounded-2xl border bg-card p-6">
         <h2 className="text-lg font-semibold">Session</h2>
