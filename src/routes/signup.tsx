@@ -25,8 +25,8 @@ function SignupPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 5) {
-      toast.error("Le mot de passe doit faire au moins 5 caractères");
+    if (password.length < 8) {
+      toast.error("Le mot de passe doit faire au moins 8 caractères");
       return;
     }
     setLoading(true);
@@ -40,12 +40,14 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) {
+      logAuditPublic({ data: { action: "signup_failed", email, metadata: { reason: error.message } } }).catch(() => {});
       const msg = /rate limit|too many|email rate/i.test(error.message)
         ? "Trop de requêtes, veuillez patienter un instant."
         : error.message;
       toast.error(msg);
       return;
     }
+    logAuditPublic({ data: { action: "signup_success", email, user_id: data.user?.id } }).catch(() => {});
     if (data.session) {
       toast.success("Compte créé !");
       navigate({ to: "/dashboard" });
