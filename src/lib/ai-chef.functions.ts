@@ -1,6 +1,39 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeader, getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+function getReqMeta() {
+  let ip: string | null = null;
+  let ua: string | null = null;
+  try { ip = getRequestIP({ xForwardedFor: true }) ?? null; } catch {}
+  try { ua = getRequestHeader("user-agent") ?? null; } catch {}
+  return { ip, ua };
+}
+
+async function audit(params: {
+  user_id: string;
+  email?: string | null;
+  action: string;
+  resource?: string | null;
+  metadata?: Record<string, unknown> | null;
+}) {
+  const { ip, ua } = getReqMeta();
+  try {
+    await supabaseAdmin.from("audit_logs").insert({
+      user_id: params.user_id,
+      user_email: params.email ?? null,
+      action: params.action,
+      resource: params.resource ?? null,
+      metadata: (params.metadata ?? null) as any,
+      ip_address: ip,
+      user_agent: ua,
+    });
+  } catch {
+    // best effort
+  }
+}
 
 const FREE_DAILY_LIMIT = 3;
 
