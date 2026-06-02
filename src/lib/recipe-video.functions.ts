@@ -206,8 +206,10 @@ export const generateRecipeVideo = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("LOVABLE_API_KEY manquante");
 
     try {
-      const storyboard = await buildStoryboard(chat.content, apiKey);
-      if (!storyboard) throw new Error("Échec génération storyboard");
+      const storyboard = await buildStoryboard(chat.content, apiKey).catch((err) => {
+        throw new Error(`Échec génération storyboard: ${err instanceof Error ? err.message : String(err)}`);
+      });
+
 
       // Generate the 5 images sequentially to stay under gateway rate limits
       const scenes: Scene[] = [];
