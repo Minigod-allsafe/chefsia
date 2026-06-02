@@ -61,21 +61,36 @@ export function RecipeVideoPlayer({ chatId }: { chatId: string }) {
   }
 
   if (row.status === "failed") {
+    const err = row.error ?? "erreur inconnue";
+    const isCredit = /crédit|premium|épuis/i.test(err);
     return (
-      <div className="mt-4 flex items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-        <AlertCircle className="h-4 w-4" />
-        <span>Vidéo indisponible : {row.error ?? "erreur inconnue"}</span>
-        <Button
-          size="sm"
-          variant="outline"
-          className="ml-auto"
-          onClick={() => {
-            triggeredRef.current = false;
-            triggerGenerate({ data: { chatId } }).catch(() => {});
-          }}
-        >
-          <RotateCcw className="mr-1 h-3 w-3" /> Réessayer
-        </Button>
+      <div
+        className={`mt-4 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
+          isCredit
+            ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+            : "border-destructive/40 bg-destructive/5 text-destructive"
+        }`}
+      >
+        <AlertCircle className="h-4 w-4 shrink-0" />
+        <span className="flex-1 min-w-[12rem]">
+          {isCredit ? err : `Vidéo indisponible : ${err}`}
+        </span>
+        {isCredit ? (
+          <Button size="sm" asChild>
+            <a href="/premium">Passer Premium</a>
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              triggeredRef.current = false;
+              triggerGenerate({ data: { chatId } }).catch(() => {});
+            }}
+          >
+            <RotateCcw className="mr-1 h-3 w-3" /> Réessayer
+          </Button>
+        )}
       </div>
     );
   }
