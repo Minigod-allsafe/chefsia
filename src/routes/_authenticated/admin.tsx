@@ -11,6 +11,7 @@ import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { TenantsAdminSection } from "@/components/admin/TenantsAdminSection";
+import { InvitationsSection } from "@/components/admin/InvitationsSection";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -244,6 +245,9 @@ function AdminPage() {
 
       {/* Multi-tenant management */}
       <TenantsAdminSection />
+
+      {/* Invitations */}
+      <InvitationsSection />
 
       {/* Journal d'audit */}
       <section>
