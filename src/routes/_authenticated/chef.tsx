@@ -125,10 +125,16 @@ function ChefPage() {
                 }
               >
                 {m.role === "assistant" ? (
-                  <AssistantMessage content={m.content} />
+                  <>
+                    <AssistantMessage content={m.content} />
+                    {m.isRecipe && m.chatId ? (
+                      <RecipeVideoPlayer chatId={m.chatId} />
+                    ) : null}
+                  </>
                 ) : (
                   <p className="text-sm">{m.content}</p>
                 )}
+
               </div>
             </div>
           ))}
