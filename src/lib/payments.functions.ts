@@ -145,7 +145,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
       const stripe = createStripeClient(data.environment);
       const portal = await stripe.billingPortal.sessions.create({
         customer: org.stripe_customer_id,
-        return_url: data.returnUrl,
+        return_url: safeReturnUrl,
       });
       return { url: portal.url };
     } catch (error) {
