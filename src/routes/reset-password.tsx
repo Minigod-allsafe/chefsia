@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient, getSupabaseUnavailableMessage } from "@/lib/supabase-safe";
 import { toast } from "sonner";
 import { AuthShell } from "./login";
 
@@ -19,12 +19,15 @@ function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const authClient = getSupabaseClient();
+    if (!authClient) return;
+
     // Supabase auto-handles the recovery token from URL hash on this page
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = authClient.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
     // Also check existing session in case event already fired
-    supabase.auth.getSession().then(({ data }) => {
+    authClient.auth.getSession().then(({ data }) => {
       if (data.session) setReady(true);
     });
     return () => subscription.unsubscribe();
@@ -41,7 +44,14 @@ function ResetPasswordPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setLoading(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { error } = await authClient.auth.updateUser({ password });
     setLoading(false);
     if (error) {
       toast.error(error.message);
