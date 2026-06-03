@@ -6,7 +6,14 @@ import { listCoursesWithProgress } from "@/lib/courses.functions";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Crown, GraduationCap, ChefHat } from "lucide-react";
+import { Sparkles, Crown, GraduationCap, ChefHat, Package, AlertTriangle, HelpCircle, Trash2 } from "lucide-react";
+
+const PACKAGE_STATS = [
+  { label: "Packages totaux", value: 142, icon: Package },
+  { label: "Packages critiques", value: 5, icon: AlertTriangle },
+  { label: "Packages inconnus", value: 8, icon: HelpCircle },
+  { label: "Packages inutilisés", value: 12, icon: Trash2 },
+];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardHome,
