@@ -5,6 +5,22 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 
 const StripeEnvSchema = z.enum(['sandbox', 'live']);
 
+// F-12: prevent open-redirect via returnUrl. Only allow same-origin URLs
+// (the deployed app) or known Lovable preview/published hosts.
+function assertSafeReturnUrl(returnUrl: string): string {
+  const u = new URL(returnUrl);
+  const host = u.hostname;
+  const allowed =
+    host === "localhost" ||
+    host.endsWith(".lovable.app") ||
+    host.endsWith(".lovableproject.com") ||
+    (typeof process !== "undefined" && process.env.APP_URL
+      ? host === new URL(process.env.APP_URL).hostname
+      : false);
+  if (!allowed) throw new Error("Invalid return URL");
+  return u.toString();
+}
+
 // F-11: server-side allowlist of Stripe price lookup_keys. Only these are
 // purchasable; arbitrary lookup_keys present in the Stripe account (test SKUs,
 // 1¢ trials, archived discounts) cannot be selected by the client.
@@ -15,6 +31,7 @@ const ALLOWED_PRICE_LOOKUP_KEYS = new Set([
   "pro_monthly", "pro_yearly",
   "enterprise_monthly", "enterprise_yearly",
 ]);
+
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 type PortalResult = { url: string } | { error: string };
@@ -61,7 +78,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       if (!ALLOWED_PRICE_LOOKUP_KEYS.has(data.priceId)) {
         return { error: "Plan invalide" };
       }
+      const safeReturnUrl = assertSafeReturnUrl(data.returnUrl);
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("email, organization_id").eq("id", context.userId).maybeSingle();
 
@@ -80,7 +99,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: isRecurring ? "subscription" : "payment",
         ui_mode: "embedded_page",
-        return_url: data.returnUrl,
+        return_url: safeReturnUrl,
+
         customer: customerId,
         // Stripe gère TVA + conformité fiscale de bout en bout (~80 pays).
         ...(({ managed_payments: { enabled: true } }) as any),
@@ -111,7 +131,9 @@ export const createPortalSession = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }): Promise<PortalResult> => {
     try {
+      const safeReturnUrl = assertSafeReturnUrl(data.returnUrl);
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("organization_id").eq("id", context.userId).maybeSingle();
       if (!profile?.organization_id) throw new Error("Aucune organisation");
@@ -123,7 +145,7 @@ export const createPortalSession = createServerFn({ method: "POST" })
       const stripe = createStripeClient(data.environment);
       const portal = await stripe.billingPortal.sessions.create({
         customer: org.stripe_customer_id,
-        return_url: data.returnUrl,
+        return_url: safeReturnUrl,
       });
       return { url: portal.url };
     } catch (error) {
