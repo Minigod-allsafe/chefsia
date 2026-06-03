@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient, getSupabaseUnavailableMessage } from "@/lib/supabase-safe";
 import { toast } from "sonner";
 import { AuthShell } from "./login";
 import { logAuditPublic } from "@/lib/audit.functions";
@@ -13,14 +13,11 @@ import { Check, X } from "lucide-react";
 export const Route = createFileRoute("/signup")({
   ssr: false,
   beforeLoad: async () => {
-    if (typeof window === "undefined") return;
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) throw redirect({ to: "/dashboard" });
-    } catch (err) {
-      if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
-      console.warn("[signup] auth init skipped:", err);
-    }
+    const authClient = getSupabaseClient();
+    if (!authClient) return;
+
+    const { data, error } = await authClient.auth.getUser();
+    if (!error && data.user) throw redirect({ to: "/dashboard" });
   },
   component: SignupPage,
 });
@@ -47,7 +44,14 @@ function SignupPage() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setLoading(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { data, error } = await authClient.auth.signUp({
       email,
       password,
       options: {

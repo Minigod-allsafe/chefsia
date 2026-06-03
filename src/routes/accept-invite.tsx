@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase-safe";
 import { lookupInvitation, acceptInvitation } from "@/lib/invitations.functions";
 
 export const Route = createFileRoute("/accept-invite")({
@@ -23,8 +23,14 @@ function AcceptInvitePage() {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setHasSession(!!s));
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setHasSession(false);
+      return;
+    }
+
+    authClient.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+    const { data: sub } = authClient.auth.onAuthStateChange((_e, s) => setHasSession(!!s));
     return () => sub.subscription.unsubscribe();
   }, []);
 

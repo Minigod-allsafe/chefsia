@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase-safe";
 import { logout as doLogout } from "@/lib/auth";
 import { isAdmin as isAdminFn } from "@/lib/admin.functions";
 import { ChefHat, Home, Sparkles, GraduationCap, Crown, Settings, LogOut, Menu, X, Shield } from "lucide-react";
@@ -10,9 +10,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated")({
+  ssr: false,
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) throw redirect({ to: "/login" });
+    const authClient = getSupabaseClient();
+    if (!authClient) throw redirect({ to: "/login" });
+
+    const { data, error } = await authClient.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/login" });
   },
   component: AuthLayout,
 });
