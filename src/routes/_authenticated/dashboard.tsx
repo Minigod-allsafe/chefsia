@@ -6,7 +6,14 @@ import { listCoursesWithProgress } from "@/lib/courses.functions";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Crown, GraduationCap, ChefHat } from "lucide-react";
+import { Sparkles, Crown, GraduationCap, ChefHat, Package, AlertTriangle, HelpCircle, Trash2 } from "lucide-react";
+
+const PACKAGE_STATS = [
+  { label: "Packages totaux", value: 142, icon: Package },
+  { label: "Packages critiques", value: 5, icon: AlertTriangle },
+  { label: "Packages inconnus", value: 8, icon: HelpCircle },
+  { label: "Packages inutilisés", value: 12, icon: Trash2 },
+];
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardHome,
@@ -79,6 +86,22 @@ function DashboardHome() {
           )}
         </Card>
       </div>
+
+      <section>
+        <h2 className="font-display text-2xl font-semibold">Statistiques des packages</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Aperçu des packages du projet</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {PACKAGE_STATS.map(({ label, value, icon: Icon }) => (
+            <Card key={label} className="p-5">
+              <div className="flex items-center gap-3">
+                <Icon className="h-5 w-5 text-primary" />
+                <span className="text-sm font-medium">{label}</span>
+              </div>
+              <p className="mt-3 text-3xl font-bold">{value}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       <section>
         <h2 className="font-display text-2xl font-semibold">Suggestions de recettes</h2>
