@@ -12,6 +12,10 @@ const LogInput = z.object({
   user_id: z.string().uuid().optional(),
 });
 
+// Public variant must never trust a caller-supplied user_id (audit log poisoning).
+const PublicLogInput = LogInput.omit({ user_id: true });
+
+
 /**
  * Public audit log endpoint (no auth required) — used for login/signup attempts
  * before a session exists. user_id stays null in those cases.
