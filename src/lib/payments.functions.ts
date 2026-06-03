@@ -78,7 +78,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       if (!ALLOWED_PRICE_LOOKUP_KEYS.has(data.priceId)) {
         return { error: "Plan invalide" };
       }
+      const safeReturnUrl = assertSafeReturnUrl(data.returnUrl);
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("email, organization_id").eq("id", context.userId).maybeSingle();
 
@@ -97,7 +99,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: isRecurring ? "subscription" : "payment",
         ui_mode: "embedded_page",
-        return_url: data.returnUrl,
+        return_url: safeReturnUrl,
+
         customer: customerId,
         // Stripe gère TVA + conformité fiscale de bout en bout (~80 pays).
         ...(({ managed_payments: { enabled: true } }) as any),
@@ -128,7 +131,9 @@ export const createPortalSession = createServerFn({ method: "POST" })
   }).parse)
   .handler(async ({ data, context }): Promise<PortalResult> => {
     try {
+      const safeReturnUrl = assertSafeReturnUrl(data.returnUrl);
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("organization_id").eq("id", context.userId).maybeSingle();
       if (!profile?.organization_id) throw new Error("Aucune organisation");
