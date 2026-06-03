@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient, getSupabaseUnavailableMessage } from "@/lib/supabase-safe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,13 @@ export function MfaSection() {
 
   const refresh = async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.mfa.listFactors();
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await authClient.auth.mfa.listFactors();
     if (!error && data) {
       setFactors((data.totp ?? []) as Factor[]);
     }
@@ -30,7 +36,14 @@ export function MfaSection() {
 
   const startEnroll = async () => {
     setBusy(true);
-    const { data, error } = await supabase.auth.mfa.enroll({
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setBusy(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { data, error } = await authClient.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: `ChefIA — ${new Date().toLocaleDateString("fr-FR")}`,
     });
@@ -50,7 +63,14 @@ export function MfaSection() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: enrolling.factorId, code });
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setBusy(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { error } = await authClient.auth.mfa.challengeAndVerify({ factorId: enrolling.factorId, code });
     setBusy(false);
     if (error) {
       toast.error(error.message);
@@ -64,7 +84,7 @@ export function MfaSection() {
 
   const cancelEnroll = async () => {
     if (!enrolling) return;
-    await supabase.auth.mfa.unenroll({ factorId: enrolling.factorId });
+    await getSupabaseClient()?.auth.mfa.unenroll({ factorId: enrolling.factorId });
     setEnrolling(null);
     setCode("");
     refresh();
@@ -73,7 +93,14 @@ export function MfaSection() {
   const removeFactor = async (factorId: string) => {
     if (!confirm("Désactiver la 2FA ? Votre compte sera moins sécurisé.")) return;
     setBusy(true);
-    const { error } = await supabase.auth.mfa.unenroll({ factorId });
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setBusy(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { error } = await authClient.auth.mfa.unenroll({ factorId });
     setBusy(false);
     if (error) {
       toast.error(error.message);
