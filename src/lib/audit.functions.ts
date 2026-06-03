@@ -35,12 +35,14 @@ export const logAuditPublic = createServerFn({ method: "POST" })
       user_email: data.email ?? null,
       action: data.action,
       resource: data.resource ?? null,
-      metadata: (data.metadata ?? null) as any,
+      // Mark client-supplied entries as untrusted so they can be filtered/audited
+      metadata: { ...(data.metadata ?? {}), untrusted: true } as any,
       ip_address: ip,
       user_agent: ua,
     });
     return { ok: true };
   });
+
 
 
 /** Authenticated audit log — automatically attaches the current user. */

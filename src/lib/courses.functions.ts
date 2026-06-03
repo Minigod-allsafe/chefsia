@@ -15,8 +15,9 @@ export const listCoursesWithProgress = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    // video_url is column-revoked from anon/authenticated: must be read with admin client
     const [{ data: courses }, { data: progress }, { data: profile }] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from("courses")
         .select("id, title, description, thumbnail_url, video_url, duration_min, is_premium, position")
         .order("position", { ascending: true }),
@@ -35,6 +36,7 @@ export const listCoursesWithProgress = createServerFn({ method: "GET" })
       })),
     };
   });
+
 
 export const setProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
