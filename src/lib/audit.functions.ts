@@ -12,12 +12,16 @@ const LogInput = z.object({
   user_id: z.string().uuid().optional(),
 });
 
+// Public variant must never trust a caller-supplied user_id (audit log poisoning).
+const PublicLogInput = LogInput.omit({ user_id: true });
+
+
 /**
  * Public audit log endpoint (no auth required) — used for login/signup attempts
  * before a session exists. user_id stays null in those cases.
  */
 export const logAuditPublic = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => LogInput.parse(d))
+  .inputValidator((d: unknown) => PublicLogInput.parse(d))
   .handler(async ({ data }) => {
     const ip = (() => {
       try { return getRequestIP({ xForwardedFor: true }) ?? null; } catch { return null; }
@@ -27,7 +31,7 @@ export const logAuditPublic = createServerFn({ method: "POST" })
     })();
 
     await supabaseAdmin.from("audit_logs").insert({
-      user_id: data.user_id ?? null,
+      user_id: null,
       user_email: data.email ?? null,
       action: data.action,
       resource: data.resource ?? null,
@@ -37,6 +41,7 @@ export const logAuditPublic = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
 
 /** Authenticated audit log — automatically attaches the current user. */
 export const logAudit = createServerFn({ method: "POST" })
