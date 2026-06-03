@@ -21,7 +21,7 @@ const PublicLogInput = LogInput.omit({ user_id: true });
  * before a session exists. user_id stays null in those cases.
  */
 export const logAuditPublic = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => LogInput.parse(d))
+  .inputValidator((d: unknown) => PublicLogInput.parse(d))
   .handler(async ({ data }) => {
     const ip = (() => {
       try { return getRequestIP({ xForwardedFor: true }) ?? null; } catch { return null; }
@@ -31,7 +31,7 @@ export const logAuditPublic = createServerFn({ method: "POST" })
     })();
 
     await supabaseAdmin.from("audit_logs").insert({
-      user_id: data.user_id ?? null,
+      user_id: null,
       user_email: data.email ?? null,
       action: data.action,
       resource: data.resource ?? null,
@@ -41,6 +41,7 @@ export const logAuditPublic = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
 
 /** Authenticated audit log — automatically attaches the current user. */
 export const logAudit = createServerFn({ method: "POST" })
