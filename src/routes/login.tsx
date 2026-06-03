@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient, getSupabaseUnavailableMessage } from "@/lib/supabase-safe";
 import { toast } from "sonner";
 import { ChefHat } from "lucide-react";
 import { logAuditPublic } from "@/lib/audit.functions";
@@ -11,15 +11,11 @@ import { logAuditPublic } from "@/lib/audit.functions";
 export const Route = createFileRoute("/login")({
   ssr: false,
   beforeLoad: async () => {
-    if (typeof window === "undefined") return;
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) throw redirect({ to: "/dashboard" });
-    } catch (err) {
-      // Re-throw router redirects; swallow init errors (e.g. missing env) so the page still renders.
-      if (err && typeof err === "object" && "to" in (err as Record<string, unknown>)) throw err;
-      console.warn("[login] auth init skipped:", err);
-    }
+    const authClient = getSupabaseClient();
+    if (!authClient) return;
+
+    const { data, error } = await authClient.auth.getUser();
+    if (!error && data.user) throw redirect({ to: "/dashboard" });
   },
   component: LoginPage,
 });
@@ -41,7 +37,14 @@ function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      setLoading(false);
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
+
+    const { data: signInData, error } = await authClient.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
       logAuditPublic({ data: { action: "login_failed", email, metadata: { reason: error.message } } }).catch(() => {});
@@ -52,9 +55,9 @@ function LoginPage() {
       return;
     }
     // Check if MFA is required (AAL2)
-    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const { data: aal } = await authClient.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel === "aal1" && aal.nextLevel === "aal2") {
-      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const { data: factors } = await authClient.auth.mfa.listFactors();
       const totp = factors?.totp?.find((f) => f.status === "verified");
       if (totp) {
         setMfa({ factorId: totp.id });
@@ -69,12 +72,17 @@ function LoginPage() {
   const verifyMfa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mfa) return;
+    const authClient = getSupabaseClient();
+    if (!authClient) {
+      toast.error(getSupabaseUnavailableMessage());
+      return;
+    }
     if (!/^\d{6}$/.test(code)) {
       toast.error("Entrez le code à 6 chiffres");
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfa.factorId, code });
+    const { error } = await authClient.auth.mfa.challengeAndVerify({ factorId: mfa.factorId, code });
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -105,7 +113,7 @@ function LoginPage() {
           </Button>
           <button
             type="button"
-            onClick={async () => { await supabase.auth.signOut(); setMfa(null); setCode(""); }}
+            onClick={async () => { await getSupabaseClient()?.auth.signOut(); setMfa(null); setCode(""); }}
             className="block w-full text-center text-sm text-muted-foreground hover:text-foreground"
           >
             Annuler
