@@ -18,6 +18,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedRecipeGeneratorRouteImport } from './routes/_authenticated/recipe-generator'
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCoursRouteImport } from './routes/_authenticated/cours'
@@ -70,6 +71,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecipeGeneratorRoute =
+  AuthenticatedRecipeGeneratorRouteImport.update({
+    id: '/recipe-generator',
+    path: '/recipe-generator',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedPremiumRoute = AuthenticatedPremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/cours': typeof AuthenticatedCoursRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/recipe-generator': typeof AuthenticatedRecipeGeneratorRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
   '/cours': typeof AuthenticatedCoursRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/premium': typeof AuthenticatedPremiumRoute
+  '/recipe-generator': typeof AuthenticatedRecipeGeneratorRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -157,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/cours': typeof AuthenticatedCoursRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
+  '/_authenticated/recipe-generator': typeof AuthenticatedRecipeGeneratorRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/cours'
     | '/dashboard'
     | '/premium'
+    | '/recipe-generator'
     | '/settings'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/cours'
     | '/dashboard'
     | '/premium'
+    | '/recipe-generator'
     | '/settings'
     | '/api/public/payments/webhook'
   id:
@@ -211,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cours'
     | '/_authenticated/dashboard'
     | '/_authenticated/premium'
+    | '/_authenticated/recipe-generator'
     | '/_authenticated/settings'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/recipe-generator': {
+      id: '/_authenticated/recipe-generator'
+      path: '/recipe-generator'
+      fullPath: '/recipe-generator'
+      preLoaderRoute: typeof AuthenticatedRecipeGeneratorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/premium': {
       id: '/_authenticated/premium'
       path: '/premium'
@@ -351,6 +371,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCoursRoute: typeof AuthenticatedCoursRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
+  AuthenticatedRecipeGeneratorRoute: typeof AuthenticatedRecipeGeneratorRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
 
@@ -361,6 +382,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCoursRoute: AuthenticatedCoursRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
+  AuthenticatedRecipeGeneratorRoute: AuthenticatedRecipeGeneratorRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
 }
 
