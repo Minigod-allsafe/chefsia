@@ -122,6 +122,53 @@ function Landing() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background" />
       </section>
 
+      {/* Carrousel marketing */}
+      <section className="mx-auto max-w-7xl px-6 py-24">
+        <div className="text-center">
+          <span className="text-xs uppercase tracking-[0.2em] text-primary">— En 7 slides</span>
+          <h2 className="mt-4 font-display text-4xl sm:text-5xl">
+            Pourquoi <span className="italic text-gradient-gold">ChefIA</span> change la donne
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
+            Glissez horizontalement pour découvrir l'histoire.
+          </p>
+        </div>
+
+        <div className="mt-12 -mx-6 overflow-x-auto px-6 pb-6 [scrollbar-color:var(--color-primary)_transparent] [scroll-snap-type:x_mandatory]">
+          <div className="flex gap-5">
+            {CAROUSEL_SLIDES.map((s, i) => (
+              <figure
+                key={i}
+                className="group relative shrink-0 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card-premium transition-all duration-500 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow [scroll-snap-align:center]"
+                style={{ width: "min(82vw, 460px)" }}
+              >
+                <img
+                  src={s.src}
+                  alt={s.alt}
+                  width={1080}
+                  height={1080}
+                  loading="lazy"
+                  className="aspect-square w-full object-cover"
+                />
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-background/95 via-background/40 to-transparent px-5 py-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  <span>{i + 1} / {CAROUSEL_SLIDES.length}</span>
+                  <span className="text-primary">ChefIA</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link to="/signup">
+            <Button size="lg" className="h-12 px-8 shadow-glow">
+              Essayer gratuitement
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* Stats / social proof */}
       <section className="border-y border-border/50 bg-card/40">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border/40 px-0 md:grid-cols-4">
