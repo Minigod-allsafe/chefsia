@@ -347,13 +347,18 @@ function Landing() {
           </p>
         </div>
 
-        <div className="mt-12 -mx-6 overflow-x-auto px-6 pb-6 [scroll-snap-type:x_mandatory]">
+        <div
+          data-testid="carousel"
+          className="mt-12 -mx-6 overflow-x-auto px-6 pb-6 [scroll-snap-type:x_mandatory]"
+        >
           <div className="flex gap-5">
             {CAROUSEL_SLIDES.map((s, i) => (
               <Link
                 key={i}
                 to="/signup"
                 aria-label={s.alt}
+                data-testid="carousel-slide"
+                data-slide-index={i}
                 className="group relative block shrink-0 cursor-pointer overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card-premium transition-all duration-500 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [scroll-snap-align:center]"
                 style={{ width: "min(82vw, 460px)" }}
               >
