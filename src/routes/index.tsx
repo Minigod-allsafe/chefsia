@@ -13,6 +13,23 @@ import {
 } from "lucide-react";
 import heroChef from "@/assets/hero-chef.jpg";
 import { IngredientsBackground } from "@/components/IngredientsBackground";
+import slide1 from "@/assets/carousel/slide-1.png";
+import slide2 from "@/assets/carousel/slide-2.png";
+import slide3 from "@/assets/carousel/slide-3.png";
+import slide4 from "@/assets/carousel/slide-4.png";
+import slide5 from "@/assets/carousel/slide-5.png";
+import slide6 from "@/assets/carousel/slide-6.png";
+import slide7 from "@/assets/carousel/slide-7.png";
+
+const CAROUSEL_SLIDES = [
+  { src: slide1, alt: "ChefIA — Votre entreprise perd-elle des clients ?" },
+  { src: slide2, alt: "ChefIA — 80% des prospects ne reviennent jamais" },
+  { src: slide3, alt: "ChefIA travaille pour vous 24h/24" },
+  { src: slide4, alt: "ChefIA — Transformez vos visiteurs en clients" },
+  { src: slide5, alt: "ChefIA — Les entreprises qui automatisent gagnent plus" },
+  { src: slide6, alt: "ChefIA — Commencez aujourd'hui" },
+  { src: slide7, alt: "ChefIA — Essayez gratuitement" },
+];
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -103,6 +120,53 @@ function Landing() {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-background" />
+      </section>
+
+      {/* Carrousel marketing */}
+      <section className="mx-auto max-w-7xl px-6 py-24">
+        <div className="text-center">
+          <span className="text-xs uppercase tracking-[0.2em] text-primary">— En 7 slides</span>
+          <h2 className="mt-4 font-display text-4xl sm:text-5xl">
+            Pourquoi <span className="italic text-gradient-gold">ChefIA</span> change la donne
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
+            Glissez horizontalement pour découvrir l'histoire.
+          </p>
+        </div>
+
+        <div className="mt-12 -mx-6 overflow-x-auto px-6 pb-6 [scrollbar-color:var(--color-primary)_transparent] [scroll-snap-type:x_mandatory]">
+          <div className="flex gap-5">
+            {CAROUSEL_SLIDES.map((s, i) => (
+              <figure
+                key={i}
+                className="group relative shrink-0 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card-premium transition-all duration-500 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow [scroll-snap-align:center]"
+                style={{ width: "min(82vw, 460px)" }}
+              >
+                <img
+                  src={s.src}
+                  alt={s.alt}
+                  width={1080}
+                  height={1080}
+                  loading="lazy"
+                  className="aspect-square w-full object-cover"
+                />
+                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-background/95 via-background/40 to-transparent px-5 py-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  <span>{i + 1} / {CAROUSEL_SLIDES.length}</span>
+                  <span className="text-primary">ChefIA</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link to="/signup">
+            <Button size="lg" className="h-12 px-8 shadow-glow">
+              Essayer gratuitement
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Stats / social proof */}
