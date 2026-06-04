@@ -40,48 +40,114 @@ async function generateImage(prompt: string, apiKey: string): Promise<string | n
   }
 }
 
+function extractJSON(raw: string): any {
+  let cleaned = raw
+    .replace(/^```json\s*/im, "")
+    .replace(/^```\s*/im, "")
+    .replace(/```\s*$/im, "")
+    .trim();
+  if (!cleaned.startsWith("{") && !cleaned.startsWith("[")) {
+    const objStart = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (objStart !== -1 && end > objStart) {
+      cleaned = cleaned.slice(objStart, end + 1);
+    } else {
+      throw new Error("Aucun JSON trouvé dans la réponse");
+    }
+  }
+  return JSON.parse(cleaned);
+}
+
 async function buildStoryboard(
   recipeMarkdown: string,
   apiKey: string,
 ): Promise<{ dish: string; scenes: Array<Omit<Scene, "image"> & { image_prompt?: string }> }> {
-  const callModel = async (model: string): Promise<string> => {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content:
-              'Tu es un réalisateur de vidéo culinaire. Réponds UNIQUEMENT avec un JSON valide (pas de markdown) au format: {"dish": string, "scenes": [{"step": 1-5, "label": "Ingrédients"|"Préparation"|"Cuisson"|"Dressage"|"Résultat final", "caption": string ≤120 chars, "image_prompt": string en anglais pour photo culinaire, "duration_ms": 3000-6000}]}. Exactement 5 scènes dans l\'ordre des labels.',
-          },
-          { role: "user", content: `Recette:\n\n${recipeMarkdown}` },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
+  const callModel = async (model: string, attempt: number): Promise<string> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    let res: Response;
+    try {
+      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model,
+          max_tokens: 2048,
+          messages: [
+            {
+              role: "system",
+              content:
+                'Tu es un réalisateur de vidéo culinaire. Réponds UNIQUEMENT avec un JSON valide (pas de markdown) au format: {"dish": string, "scenes": [{"step": 1-5, "label": "Ingrédients"|"Préparation"|"Cuisson"|"Dressage"|"Résultat final", "caption": string ≤120 chars, "image_prompt": string en anglais pour photo culinaire, "duration_ms": 3000-6000}]}. Exactement 5 scènes dans l\'ordre des labels.',
+            },
+            { role: "user", content: `Recette:\n\n${recipeMarkdown.slice(0, 6000)}` },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+    } catch (e: any) {
+      clearTimeout(timeoutId);
+      const msg = e?.name === "AbortError" ? "timeout réseau (45s)" : (e?.message ?? "erreur réseau");
+      console.error(`[storyboard] ${model} attempt#${attempt} fetch failed:`, msg);
+      throw new Error(`Réseau: ${msg}`);
+    }
+    clearTimeout(timeoutId);
+
+    if (res.status === 429) throw new Error("Quota IA atteint (429). Réessayez dans un instant.");
+    if (res.status === 402) throw new Error("Crédits IA épuisés (402). Ajoutez des crédits dans l'espace de travail.");
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
+      console.error(`[storyboard] ${model} attempt#${attempt} HTTP ${res.status}:`, errText.slice(0, 300));
       throw new Error(`AI ${res.status}: ${errText.slice(0, 180)}`);
     }
-    const json = (await res.json()) as any;
-    const content = json.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Réponse IA vide");
+
+    const json = (await res.json().catch(() => null)) as any;
+    const choice = json?.choices?.[0];
+    const content = choice?.message?.content;
+    const finishReason = choice?.finish_reason;
+    console.log(
+      `[storyboard] ${model} attempt#${attempt} finish=${finishReason} len=${content?.length ?? 0} usage=`,
+      json?.usage,
+    );
+
+    if (!content || String(content).trim() === "") {
+      if (finishReason === "length") {
+        throw new Error("Réponse IA tronquée (limite tokens).");
+      }
+      throw new Error(`Réponse IA vide (finish=${finishReason ?? "?"})`);
+    }
     return content as string;
   };
 
-  let content: string;
-  try {
-    content = await callModel("google/gemini-2.5-flash");
-  } catch {
-    content = await callModel("google/gemini-3-flash-preview");
+  const models = ["google/gemini-2.5-flash", "google/gemini-3-flash-preview", "google/gemini-2.5-pro"];
+  let lastErr: unknown = null;
+  let content: string | null = null;
+  outer: for (const model of models) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        content = await callModel(model, attempt);
+        break outer;
+      } catch (e) {
+        lastErr = e;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("402") || msg.includes("Crédits")) break outer;
+        if (msg.includes("429") || msg.includes("Quota")) {
+          await new Promise((r) => setTimeout(r, 1500 * attempt));
+          continue;
+        }
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+  }
+  if (!content) {
+    throw new Error(lastErr instanceof Error ? lastErr.message : "Échec après 3 tentatives");
   }
 
   let parsed: any;
   try {
-    parsed = JSON.parse(content);
+    parsed = extractJSON(content);
   } catch {
+    console.error("[storyboard] JSON parse failed. Raw content:", content.slice(0, 500));
     throw new Error("JSON storyboard invalide");
   }
   if (!parsed?.dish || !Array.isArray(parsed?.scenes) || parsed.scenes.length === 0) {
