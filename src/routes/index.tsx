@@ -350,9 +350,11 @@ function Landing() {
         <div className="mt-12 -mx-6 overflow-x-auto px-6 pb-6 [scroll-snap-type:x_mandatory]">
           <div className="flex gap-5">
             {CAROUSEL_SLIDES.map((s, i) => (
-              <figure
+              <Link
                 key={i}
-                className="group relative shrink-0 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card-premium transition-all duration-500 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow [scroll-snap-align:center]"
+                to="/signup"
+                aria-label={s.alt}
+                className="group relative block shrink-0 cursor-pointer overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card-premium transition-all duration-500 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [scroll-snap-align:center]"
                 style={{ width: "min(82vw, 460px)" }}
               >
                 <img
@@ -361,13 +363,14 @@ function Landing() {
                   width={1080}
                   height={1080}
                   loading="lazy"
-                  className="aspect-square w-full object-cover"
+                  draggable={false}
+                  className="pointer-events-none aspect-square w-full select-none object-cover"
                 />
-                <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-background/95 via-background/40 to-transparent px-5 py-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-background/95 via-background/40 to-transparent px-5 py-4 text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   <span>{i + 1} / {CAROUSEL_SLIDES.length}</span>
                   <span className="text-primary">ChefIA</span>
-                </figcaption>
-              </figure>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
