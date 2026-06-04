@@ -13,6 +13,23 @@ import {
 } from "lucide-react";
 import heroChef from "@/assets/hero-chef.jpg";
 import { IngredientsBackground } from "@/components/IngredientsBackground";
+import slide1 from "@/assets/carousel/slide-1.png";
+import slide2 from "@/assets/carousel/slide-2.png";
+import slide3 from "@/assets/carousel/slide-3.png";
+import slide4 from "@/assets/carousel/slide-4.png";
+import slide5 from "@/assets/carousel/slide-5.png";
+import slide6 from "@/assets/carousel/slide-6.png";
+import slide7 from "@/assets/carousel/slide-7.png";
+
+const CAROUSEL_SLIDES = [
+  { src: slide1, alt: "ChefIA — Votre entreprise perd-elle des clients ?" },
+  { src: slide2, alt: "ChefIA — 80% des prospects ne reviennent jamais" },
+  { src: slide3, alt: "ChefIA travaille pour vous 24h/24" },
+  { src: slide4, alt: "ChefIA — Transformez vos visiteurs en clients" },
+  { src: slide5, alt: "ChefIA — Les entreprises qui automatisent gagnent plus" },
+  { src: slide6, alt: "ChefIA — Commencez aujourd'hui" },
+  { src: slide7, alt: "ChefIA — Essayez gratuitement" },
+];
 
 export const Route = createFileRoute("/")({
   component: Landing,
