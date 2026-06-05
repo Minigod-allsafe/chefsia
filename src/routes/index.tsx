@@ -145,7 +145,7 @@ function Landing() {
               <Sparkles className="h-3.5 w-3.5" /> IA Culinaire Premium
             </span>
 
-            <h1 className="mt-6 font-display text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem]">
+            <h1 className="hero-title mt-6 font-display">
               Votre <span className="italic text-gradient-gold">chef personnel</span> disponible 24h/24 grâce à l'intelligence artificielle.
             </h1>
 
