@@ -428,8 +428,8 @@ function Landing() {
       </section>
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="px-6 py-28">
-        <div className="mx-auto max-w-6xl">
+      <section id="pricing" className="py-28">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— Tarification</span>
             <h2 className="mt-4 font-display text-5xl sm:text-6xl">
