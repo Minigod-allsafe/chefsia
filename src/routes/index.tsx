@@ -536,7 +536,7 @@ function Landing() {
         />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="container-app max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-primary backdrop-blur">
             <Sparkles className="h-3.5 w-3.5" /> Démarrage immédiat
           </span>
