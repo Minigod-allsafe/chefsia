@@ -520,7 +520,7 @@ function Landing() {
       </section>
 
       {/* ============ CTA FINAL ============ */}
-      <section className="relative overflow-hidden border-t border-border/60 px-6 py-28">
+      <section className="relative overflow-hidden border-t border-border/60 py-28">
         <img
           src={heroChef}
           alt=""
