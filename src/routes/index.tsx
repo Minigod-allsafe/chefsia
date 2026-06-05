@@ -95,7 +95,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
       <header className="absolute top-0 z-30 w-full">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="container-app flex items-center justify-between py-5">
           <div className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight">
             <ChefHat className="h-6 w-6 text-primary" />
             <span>Chef <span className="text-gradient-gold">IA</span></span>
