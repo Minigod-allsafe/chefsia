@@ -181,3 +181,12 @@
     .container-app { padding-left: 40px; padding-right: 40px; }
   }
 }
+
+@layer utilities {
+  .hero-title {
+    max-width: 800px;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+}
