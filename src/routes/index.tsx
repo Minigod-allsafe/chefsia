@@ -320,7 +320,7 @@ function Landing() {
 
       {/* ============ STATS ============ */}
       <section className="border-b border-border/50">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border/40 md:grid-cols-4">
+        <div className="container-app grid grid-cols-2 gap-px bg-border/40 md:grid-cols-4">
           {[
             { value: "2 400+", label: "Chefs actifs" },
             { value: "120k", label: "Recettes générées" },
