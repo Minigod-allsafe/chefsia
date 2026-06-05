@@ -95,7 +95,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
       <header className="absolute top-0 z-30 w-full">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="container-app flex items-center justify-between py-5">
           <div className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight">
             <ChefHat className="h-6 w-6 text-primary" />
             <span>Chef <span className="text-gradient-gold">IA</span></span>
@@ -138,14 +138,14 @@ function Landing() {
         />
         <IngredientsBackground count={22} className="-z-10" />
 
-        <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[1.05fr_1fr]">
+        <div className="container-app grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-primary backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" /> IA Culinaire Premium
             </span>
 
-            <h1 className="mt-6 text-center font-display text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem]">
+            <h1 className="mt-6 font-display text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem]">
               Votre <span className="italic text-gradient-gold">chef personnel</span> disponible 24h/24 grâce à l'intelligence artificielle.
             </h1>
 
@@ -257,7 +257,7 @@ function Landing() {
       </section>
 
       {/* ============ COMMENT ÇA MARCHE ============ */}
-      <section id="how" className="relative mx-auto max-w-7xl px-6 py-24">
+      <section id="how" className="container-app relative py-24">
         <div className="text-center">
           <span className="text-xs uppercase tracking-[0.2em] text-primary">— En 3 étapes</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Comment ça marche ?</h2>
@@ -288,8 +288,8 @@ function Landing() {
       </section>
 
       {/* ============ POURQUOI CHEFIA ============ */}
-      <section id="features" className="border-y border-border/50 bg-card/30 px-6 py-28">
-        <div className="mx-auto max-w-6xl">
+      <section id="features" className="border-y border-border/50 bg-card/30 py-28">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— L'expérience</span>
             <h2 className="mt-4 font-display text-5xl sm:text-6xl">
@@ -320,7 +320,7 @@ function Landing() {
 
       {/* ============ STATS ============ */}
       <section className="border-b border-border/50">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px bg-border/40 md:grid-cols-4">
+        <div className="container-app grid grid-cols-2 gap-px bg-border/40 md:grid-cols-4">
           {[
             { value: "2 400+", label: "Chefs actifs" },
             { value: "120k", label: "Recettes générées" },
@@ -336,7 +336,7 @@ function Landing() {
       </section>
 
       {/* ============ CARROUSEL (Storytelling visuel) ============ */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
+      <section className="container-app py-24">
         <div className="text-center">
           <span className="text-xs uppercase tracking-[0.2em] text-primary">— L'histoire en images</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">
@@ -382,8 +382,8 @@ function Landing() {
       </section>
 
       {/* ============ PREUVE SOCIALE ============ */}
-      <section className="border-y border-border/50 bg-card/30 px-6 py-24">
-        <div className="mx-auto max-w-6xl">
+      <section className="border-y border-border/50 bg-card/30 py-24">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— Ils en parlent</span>
             <h2 className="mt-4 font-display text-4xl sm:text-5xl">
@@ -428,8 +428,8 @@ function Landing() {
       </section>
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="px-6 py-28">
-        <div className="mx-auto max-w-6xl">
+      <section id="pricing" className="py-28">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— Tarification</span>
             <h2 className="mt-4 font-display text-5xl sm:text-6xl">
@@ -520,7 +520,7 @@ function Landing() {
       </section>
 
       {/* ============ CTA FINAL ============ */}
-      <section className="relative overflow-hidden border-t border-border/60 px-6 py-28">
+      <section className="relative overflow-hidden border-t border-border/60 py-28">
         <img
           src={heroChef}
           alt=""
@@ -536,7 +536,7 @@ function Landing() {
         />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="container-app max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-primary backdrop-blur">
             <Sparkles className="h-3.5 w-3.5" /> Démarrage immédiat
           </span>
@@ -569,7 +569,7 @@ function Landing() {
       </section>
 
       <footer className="border-t border-border/60 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
+        <div className="container-app flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
           <div className="flex items-center gap-2 font-display text-lg">
             <ChefHat className="h-5 w-5 text-primary" />
             Chef <span className="text-gradient-gold">IA</span>
