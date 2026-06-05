@@ -138,14 +138,14 @@ function Landing() {
         />
         <IngredientsBackground count={22} className="-z-10" />
 
-        <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-[1.05fr_1fr]">
+        <div className="container-app grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-primary backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" /> IA Culinaire Premium
             </span>
 
-            <h1 className="mt-6 text-center font-display text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem]">
+            <h1 className="mt-6 font-display text-[2.7rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem]">
               Votre <span className="italic text-gradient-gold">chef personnel</span> disponible 24h/24 grâce à l'intelligence artificielle.
             </h1>
 
