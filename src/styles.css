@@ -146,7 +146,6 @@
     letter-spacing: -0.005em;
   }
 }
-}
 
 @layer utilities {
   .bg-gradient-hero { background: var(--gradient-hero); }
