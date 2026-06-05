@@ -382,8 +382,8 @@ function Landing() {
       </section>
 
       {/* ============ PREUVE SOCIALE ============ */}
-      <section className="border-y border-border/50 bg-card/30 px-6 py-24">
-        <div className="mx-auto max-w-6xl">
+      <section className="border-y border-border/50 bg-card/30 py-24">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— Ils en parlent</span>
             <h2 className="mt-4 font-display text-4xl sm:text-5xl">
