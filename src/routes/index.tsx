@@ -257,7 +257,7 @@ function Landing() {
       </section>
 
       {/* ============ COMMENT ÇA MARCHE ============ */}
-      <section id="how" className="relative mx-auto max-w-7xl px-6 py-24">
+      <section id="how" className="container-app relative py-24">
         <div className="text-center">
           <span className="text-xs uppercase tracking-[0.2em] text-primary">— En 3 étapes</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">Comment ça marche ?</h2>
