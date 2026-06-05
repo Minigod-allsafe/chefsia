@@ -288,8 +288,8 @@ function Landing() {
       </section>
 
       {/* ============ POURQUOI CHEFIA ============ */}
-      <section id="features" className="border-y border-border/50 bg-card/30 px-6 py-28">
-        <div className="mx-auto max-w-6xl">
+      <section id="features" className="border-y border-border/50 bg-card/30 py-28">
+        <div className="container-app">
           <div className="text-center">
             <span className="text-xs uppercase tracking-[0.2em] text-primary">— L'expérience</span>
             <h2 className="mt-4 font-display text-5xl sm:text-6xl">
