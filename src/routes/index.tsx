@@ -336,7 +336,7 @@ function Landing() {
       </section>
 
       {/* ============ CARROUSEL (Storytelling visuel) ============ */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
+      <section className="container-app py-24">
         <div className="text-center">
           <span className="text-xs uppercase tracking-[0.2em] text-primary">— L'histoire en images</span>
           <h2 className="mt-4 font-display text-4xl sm:text-5xl">
